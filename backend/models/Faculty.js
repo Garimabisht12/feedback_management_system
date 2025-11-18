@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const FacultySchema = mongoose.Schema({
     teacherName:{
         type: String,

@@ -6,13 +6,13 @@ const Feedback = require('../models/Feedback');
 exports.checkFeedbackStatus = async (req, res) => {
   try {
     const { rollNumber } = req.params;
-    const existingFeedback = await Feedback.findOne({ rollNumber });
-
-    if (existingFeedback) {
-      return res.json({ submitted: true });
+    const existingFeedback = await Feedback.findOne({studentRoll: Number(rollNumber) });
+   
+    
+    if (!existingFeedback) {
+      return res.json({ submitted: false });
     }
-
-    return res.json({ submitted: false });
+    return res.json({ submitted: true });
 
   } catch (error) {
     console.error(error);

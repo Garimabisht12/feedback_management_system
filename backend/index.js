@@ -4,6 +4,8 @@ const cors = require('cors');
 
 require('dotenv').config();
 
+
+
 const loginRoutes = require('./routes/login');
 const subjectRoutes = require('./routes/subjectsRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
@@ -16,6 +18,9 @@ app.use(cors({
 }))
 
 app.use(express.json())
+
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
 app.use('/api', loginRoutes);
 app.use('/api', subjectRoutes);     

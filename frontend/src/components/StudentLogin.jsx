@@ -2,27 +2,23 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "../api/axios";
 
-
-
-
-
-
 const StudentLogin = () => {
   const [rollNo, setRollNo] = useState('');
   const [isError, setIsError] = useState(false)
   const navigate = useNavigate();
-const [alreadySubmitted, setAlreadySubmitted] = useState(false)
+
 const checkSubmission = async () => {
     try {
-      const res = await axios.get(`/feedback-status/${rollNumber}`);
-      if (res.data.submitted) {
-        setAlreadySubmitted(true);
+      const res = await axios.get(`/feedback-status/${rollNo}`);
+      
+      if (res.data.submitted === true ) {
+        return true
       }
+      return false
     } catch (err) {
       console.error("Error checking feedback status", err);
     }
   };
-
 
 
   const handleLogin = async(e) => {
@@ -36,10 +32,8 @@ const checkSubmission = async () => {
     }});
 
     
-    checkSubmission();
-    
-    // console.log(res)
-    if (alreadySubmitted ){
+    const tr = await checkSubmission()
+    if (tr ){
       navigate('/responded')
     }
       else{
