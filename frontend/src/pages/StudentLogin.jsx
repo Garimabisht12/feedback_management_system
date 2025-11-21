@@ -1,44 +1,53 @@
-import React, { useState } from 'react'
-import axios from '../api/axios';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from "../api/axios";
 
-const AdminLogin = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+const StudentLogin = () => {
+  const [rollNo, setRollNo] = useState('');
+  const [isError, setIsError] = useState(false)
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate();
 
-  const handleAdminLogin = async (e) => {
+  const checkSubmission = async () => {
+    try {
+      const res = await axios.get(`/feedback-status/${rollNo}`);
+
+      if (res.data.submitted === true) {
+        return true
+      }
+      return false
+    } catch (err) {
+      console.error("Error checking feedback status", err);
+    }
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setIsError(false)
+    setLoading(true)
 
     try {
-      const res = await axios.post("/admin/login", {
-        email,
-        password
+      const res = await axios.post("/login", {
+        rollNo
       }, {
-        withCredentials: true,
         headers: {
           "Content-Type": "application/json"
         }
       });
 
-      if (res.data) {
-        // Store admin token if provided
-        if (res.data.token) {
-          localStorage.setItem('adminToken', res.data.token);
-        }
-        navigate('/adminDashboard');
-      } else {
-        setError('Invalid credentials');
+      const tr = await checkSubmission()
+      if (tr) {
+        navigate('/responded')
       }
-    } catch (e) {
-      console.log(e);
-      setError(e.response?.data?.message || 'Login failed. Please try again.');
+      else {
+        navigate('/FeedbackForm', { state: { rollNo } });
+      }
+    }
+    catch (e) {
+      setIsError(true)
+      console.log(e)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -56,49 +65,32 @@ const AdminLogin = () => {
               loading="lazy"
             />
           </div>
-          <h1 className="text-3xl text-[#1e3a8a] mb-2 font-semibold tracking-tight">Admin Portal</h1>
-          <p className="text-[#60a5fa] text-[0.95rem]">Sign in to access the dashboard</p>
+          <h1 className="text-3xl text-[#1e3a8a] mb-2 font-semibold tracking-tight">Student Portal</h1>
+          <p className="text-[#60a5fa] text-[0.95rem]">Enter your roll number to continue</p>
         </div>
 
         {/* Form */}
-        <form className="mb-8" onSubmit={handleAdminLogin}>
+        <form onSubmit={handleLogin} className="mb-6">
           <div className="mb-6">
-            <label htmlFor="email" className="block mb-2 text-[#1e40af] text-sm font-medium tracking-wide">
-              Email Address
+            <label htmlFor="rollNo" className="block mb-2 text-[#1e40af] text-sm font-medium tracking-wide">
+              Roll Number
             </label>
             <input
-              type="email"
-              name="email"
-              id="email"
-              placeholder="admin@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              name="rollNo"
+              id="rollNo"
+              value={rollNo}
+              onChange={(e) => setRollNo(e.target.value)}
+              placeholder="Enter your roll number"
               required
               disabled={loading}
               className="w-full px-4 py-3.5 border-2 border-[#dbeafe] rounded-lg text-base text-[#1e3a8a] bg-[#f0f9ff] transition-all duration-300 focus:outline-none focus:border-[#93c5fd] focus:bg-white focus:shadow-[0_0_0_4px_rgba(147,197,253,0.1)] placeholder:text-[#93c5fd] disabled:bg-[#f0f9ff] disabled:cursor-not-allowed disabled:opacity-70"
             />
           </div>
 
-          <div className="mb-6">
-            <label htmlFor="password" className="block mb-2 text-[#1e40af] text-sm font-medium tracking-wide">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full px-4 py-3.5 border-2 border-[#dbeafe] rounded-lg text-base text-[#1e3a8a] bg-[#f0f9ff] transition-all duration-300 focus:outline-none focus:border-[#93c5fd] focus:bg-white focus:shadow-[0_0_0_4px_rgba(147,197,253,0.1)] placeholder:text-[#93c5fd] disabled:bg-[#f0f9ff] disabled:cursor-not-allowed disabled:opacity-70"
-            />
-          </div>
-
-          {error && (
+          {isError && (
             <div className="bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] px-4 py-3 rounded-lg mb-5 text-sm text-center">
-              {error}
+              Invalid roll number. Please try again.
             </div>
           )}
 
@@ -107,7 +99,7 @@ const AdminLogin = () => {
             disabled={loading}
             className="w-full px-4 py-4 bg-gradient-to-br from-[#93c5fd] to-[#60a5fa] text-white border-none rounded-lg text-[1.05rem] font-semibold cursor-pointer transition-all duration-300 tracking-wider uppercase shadow-[0_4px_12px_rgba(59,130,246,0.3)] hover:bg-gradient-to-br hover:from-[#d1fa60] hover:to-[#3bf670] hover:translate-y-[-2px] hover:shadow-[0_6px_16px_rgba(59,130,246,0.4)] active:translate-y-0 active:shadow-[0_2px_8px_rgba(59,130,246,0.3)] disabled:bg-gradient-to-br disabled:from-[#bfdbfe] disabled:to-[#93c5fd] disabled:cursor-not-allowed disabled:transform-none"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
@@ -117,7 +109,7 @@ const AdminLogin = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminLogin
+export default StudentLogin;
