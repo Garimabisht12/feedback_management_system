@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../api/axios";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const feedbackParams = [
   { sNo: 1, parameter: "Teacher's Voice Skill" },
@@ -35,79 +35,81 @@ const FeedbackForm = () => {
 
 
   const location = useLocation();
+  const navigate = useNavigate();
   const rollFromLogin = location.state?.rollNo || "";
   const [rollNo, setRollNo] = useState(rollFromLogin);
 
   // get student data
   useEffect(() => {
-   const fetchData = async () =>{
-try {
-      const res = await axios.get(`/student/${rollNo}`);
-      setStudentVerified(true);
-      setStudentData(res.data.student);
-     
-    } catch (err) {
-      setIsError(true);
-      setErrorMsg(err.response?.data?.message || "Error getting data");
-      
-    }}
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`/student/${rollNo}`);
+        setStudentVerified(true);
+        setStudentData(res.data.student);
+
+      } catch (err) {
+        setIsError(true);
+        setErrorMsg(err.response?.data?.message || "Error getting data");
+
+      }
+    }
     fetchData();
   }, [])
   const verifyRollNo = async () => {
   }
 
- // Load Subjects
-const loadSubjects = async () => {
-  if (!session || !semester || !batch) {
-    setIsError(true);
-    setErrorMsg("Please enter session, semester, and batch");
-    return;
-  }
-
-  try {
-    setLoadingSubjects(true);
-    const res = await axios.get(
-      `/subjects?session=${session}&semester=${semester}&batch=${batch}`
-    );
-
-    if (!res.data || !res.data.subjects || res.data.subjects.length === 0) {
-      throw new Error("No subjects found for the given details");
+  // Load Subjects
+  const loadSubjects = async () => {
+    if (!session || !semester || !batch) {
+      setIsError(true);
+      setErrorMsg("Please enter session, semester, and batch");
+      return;
     }
 
-    const fetchedSubjects = {};
-    const initRatings = {};
-    const initOverallData = {};
+    try {
+      setLoadingSubjects(true);
+      const res = await axios.get(
+        `/subjects?session=${session}&semester=${semester}&batch=${batch}`
+      );
 
-    res.data.subjects.forEach((sub) => {
-      fetchedSubjects[sub.subjectCode] = {
-        name: sub.subjectName,
-        teacher: sub.teacherName,
-      };
-      initRatings[sub.subjectCode] = Array(10).fill("");
-      initOverallData[sub.subjectCode] = {
-        syllabus: "",
-        voice: "",
-        regularity: "",
-        ranking: "",
-        overall: "",
-      };
-    });
+      if (!res.data || !res.data.subjects || res.data.subjects.length === 0) {
+        throw new Error("No subjects found for the given details");
+      }
 
-    setSubjects(fetchedSubjects);
-    setRatings(initRatings);
-    setOverallData(initOverallData);
-    setIsError(false);
-    setErrorMsg("");
-    setSsb(true); 
-    setSsbError('')
+      const fetchedSubjects = {};
+      const initRatings = {};
+      const initOverallData = {};
 
-  } catch (err) {
-    setIsError(true);
-    setSsbError("NOT FOUND! Enter valid data");
-  } finally {
-    setLoadingSubjects(false);
-  }
-};
+      res.data.subjects.forEach((sub) => {
+        fetchedSubjects[sub.subjectCode] = {
+          name: sub.subjectName,
+          teacher: sub.teacherName,
+        };
+        initRatings[sub.subjectCode] = Array(10).fill("");
+        initOverallData[sub.subjectCode] = {
+          syllabus: "",
+          voice: "",
+          regularity: "",
+          ranking: "",
+          overall: "",
+        };
+      });
+
+      setSubjects(fetchedSubjects);
+      setRatings(initRatings);
+      setOverallData(initOverallData);
+      setIsError(false);
+      setErrorMsg("");
+      setSsb(true);
+      setSsbError('')
+
+    } catch (err) {
+      setIsError(true);
+      setSsbError("NOT FOUND! Enter valid data");
+    } finally {
+      setLoadingSubjects(false);
+    }
+  };
 
   // Handle Changes
   const handleRatingChange = (subjectCode, index, value) => {
@@ -118,10 +120,15 @@ const loadSubjects = async () => {
   };
 
   const handleOverallDataChange = (subjectCode, field, value) => {
-    setOverallData((prev) => ({
-      ...prev,
-      [subjectCode]: { ...prev[subjectCode], [field]: value },
-    }));
+    setOverallData((prev) => {
+      const updated = {
+        ...prev,
+        [subjectCode]: { ...prev[subjectCode], [field]: value },
+      };
+      // Auto-update 'overall' field with calculated total rating whenever any field changes
+      updated[subjectCode].overall = calculateTotalRating(subjectCode).toString();
+      return updated;
+    });
   };
 
   // Submit Feedback
@@ -140,7 +147,8 @@ const loadSubjects = async () => {
     }
 
     for (let code of Object.keys(ratings)) {
-      if (ratings[code].some((r) => r === "")) {
+      const firstNineRatings = ratings[code].slice(0, 9);
+      if (firstNineRatings.some((r) => r === "" || r === null || r === undefined)) {
         setIsError(true);
         setErrorMsg(`Please fill all ratings for ${code}`);
         return;
@@ -149,7 +157,7 @@ const loadSubjects = async () => {
 
     for (let code of Object.keys(overallData)) {
       const data = overallData[code];
-      if (!data.syllabus || !data.voice || !data.regularity || !data.ranking || !data.overall) {
+      if (!data.syllabus || !data.voice || !data.regularity) {
         setIsError(true);
         setErrorMsg(`Please fill all overall data for ${code}`);
         return;
@@ -176,24 +184,37 @@ const loadSubjects = async () => {
         submittedAt: new Date(),
       });
 
-      alert("Feedback submitted successfully!");
-      // Reset form
-      setRatings({});
-      setOverallData({});
-      setComments("");
-      setBestTeachers({ t1: "", t2: "", t3: "" });
-      setSubjects({});
-      setSession("");
-      setSemester("");
-      setBatch("");
-      setStudentVerified(false);
-      setRollNo("");
-      setIsError(false);
-      setErrorMsg("");
+      // alert("Feedback submitted successfully!");
+      // // Reset form
+      // setRatings({});
+      // setOverallData({});
+      // setComments("");
+      // setBestTeachers({ t1: "", t2: "", t3: "" });
+      // setSubjects({});
+      // setSession("");
+      // setSemester("");
+      // setBatch("");
+      // setStudentVerified(false);
+      // setRollNo("");
+      // setIsError(false);
+      // setErrorMsg("");
+      
+      // Redirect to responded page after successful submission
+      navigate("/responded");
     } catch (err) {
       setIsError(true);
       setErrorMsg(err.response?.data?.message || "Error submitting feedback");
     }
+  };
+
+  // Calculate total rating for a subject (sum of first 9 ratings)
+  const calculateTotalRating = (subjectCode) => {
+    const subjectRatings = ratings[subjectCode] || [];
+    const sum = subjectRatings.slice(0, 9).reduce((acc, val) => {
+      const num = parseInt(val) || 0;
+      return acc + num;
+    }, 0);
+    return sum;
   };
 
   const renderRatingsTable = () => (
@@ -216,13 +237,28 @@ const loadSubjects = async () => {
             <td className="p-1 border">{param.parameter}</td>
             {Object.keys(subjects).map((code) => (
               <td key={code} className="p-1 border text-center">
-                <input
-                  type="text"
-                  value={ratings[code]?.[i] || ""}
-                  onChange={(e) => handleRatingChange(code, i, e.target.value)}
-                  className="w-full text-center border-none bg-transparent focus:ring-0"
-                  placeholder="1-5"
-                />
+                {i === 9 ? (
+                  // Row 10: Show calculated total (sum of ratings 1-9)
+                  <div className="w-full text-center font-bold text-lg bg-blue-100 py-2">
+                    {calculateTotalRating(code)}
+                  </div>
+                ) : (
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    value={ratings[code]?.[i] || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow values between 1-5 or empty
+                      if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 5)) {
+                        handleRatingChange(code, i, value);
+                      }
+                    }}
+                    className="w-full text-center border-none bg-transparent focus:ring-0"
+                    placeholder="1-5"
+                  />
+                )}
               </td>
             ))}
           </tr>
@@ -237,11 +273,9 @@ const loadSubjects = async () => {
         <tr>
           <th className="p-2 border">Subject</th>
           <th className="p-2 border">Teacher</th>
-          <th className="p-2 border">Syllabus (%)</th>
-          <th className="p-2 border">Voice Skills</th>
-          <th className="p-2 border">Regularity</th>
-          <th className="p-2 border">Ranking</th>
-          <th className="p-2 border">Overall</th>
+          <th className="p-2 border">Syllabus (1-10)</th>
+          <th className="p-2 border">Voice Skills (1-10)</th>
+          <th className="p-2 border">Regularity (1-10)</th>
         </tr>
       </thead>
       <tbody>
@@ -251,44 +285,50 @@ const loadSubjects = async () => {
             <td className="p-1 border">{teacher}</td>
             <td className="p-1 border">
               <input
-                type="text"
+                type="number"
+                min="1"
+                max="10"
                 value={overallData[code]?.syllabus || ""}
-                onChange={(e) => handleOverallDataChange(code, "syllabus", e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 10)) {
+                    handleOverallDataChange(code, "syllabus", value);
+                  }
+                }}
                 className="w-full border-none bg-transparent text-center"
-              />
-            </td>
-            <td className="p-1 border">
-              <input
-                type="text"
-                value={overallData[code]?.voice || ""}
-                onChange={(e) => handleOverallDataChange(code, "voice", e.target.value)}
-                className="w-full border-none bg-transparent text-center"
-              />
-            </td>
-            <td className="p-1 border">
-              <input
-                type="text"
-                value={overallData[code]?.regularity || ""}
-                onChange={(e) => handleOverallDataChange(code, "regularity", e.target.value)}
-                className="w-full border-none bg-transparent text-center"
+                placeholder="1-10"
               />
             </td>
             <td className="p-1 border">
               <input
                 type="number"
                 min="1"
-                max="7"
-                value={overallData[code]?.ranking || ""}
-                onChange={(e) => handleOverallDataChange(code, "ranking", e.target.value)}
+                max="10"
+                value={overallData[code]?.voice || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 10)) {
+                    handleOverallDataChange(code, "voice", value);
+                  }
+                }}
                 className="w-full border-none bg-transparent text-center"
+                placeholder="1-10"
               />
             </td>
             <td className="p-1 border">
               <input
-                type="text"
-                value={overallData[code]?.overall || ""}
-                onChange={(e) => handleOverallDataChange(code, "overall", e.target.value)}
+                type="number"
+                min="1"
+                max="10"
+                value={overallData[code]?.regularity || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 10)) {
+                    handleOverallDataChange(code, "regularity", value);
+                  }
+                }}
                 className="w-full border-none bg-transparent text-center"
+                placeholder="1-10"
               />
             </td>
           </tr>
@@ -317,17 +357,17 @@ const loadSubjects = async () => {
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
 
-      
-        <form className="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6 sm:p-10 border-t-8 border-blue-600">
-          <h2 className="text-2xl font-bold text-center mb-6">Feedback Form</h2>
-          <p><strong>Student:</strong> {studentData.studentName}</p>
-          <p><strong>Roll No:</strong> {studentData.rollNo}</p>
-          <p><strong>Course:</strong> {studentData.course}</p>
-          <p><strong>Branch:</strong> {studentData.branch}</p>
 
-          {/* Session / Semester / Batch */}
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <label htmlFor="session" className="font-medium">Session:
+      <form className="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6 sm:p-10 border-t-8 border-blue-600">
+        <h2 className="text-2xl font-bold text-center mb-6">Feedback Form</h2>
+        <p><strong>Student:</strong> {studentData.studentName}</p>
+        <p><strong>Roll No:</strong> {studentData.rollNo}</p>
+        <p><strong>Course:</strong> {studentData.course}</p>
+        <p><strong>Branch:</strong> {studentData.branch}</p>
+
+        {/* Session / Semester / Batch */}
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          <label htmlFor="session" className="font-medium">Session:
             <input
               type="text"
               placeholder="Session"
@@ -337,8 +377,8 @@ const loadSubjects = async () => {
               disabled={Object.keys(subjects).length > 0}
               required
             />
-            </label>
-            <label htmlFor="semester" className="font-medium">Semester:
+          </label>
+          <label htmlFor="semester" className="font-medium">Semester:
             <input
               type="number"
               placeholder="Semester"
@@ -348,8 +388,8 @@ const loadSubjects = async () => {
               disabled={Object.keys(subjects).length > 0}
               required
             />
-            </label>
-            <label htmlFor="batch" className="font-medium">Batch:
+          </label>
+          <label htmlFor="batch" className="font-medium">Batch:
             <input
               type="number"
               placeholder="Batch"
@@ -359,55 +399,57 @@ const loadSubjects = async () => {
               disabled={Object.keys(subjects).length > 0}
               required
             /> </label>
-          </div>
-          {
-            ssbError && <p className="text-red-600 font-medium my-4">{ssbError}</p>
-          }
-          {!ssb && <button
-            type="submit"
-            onClick={loadSubjects}
-            disabled={loadingSubjects}
-            className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            {loadingSubjects ? "Loading Subjects..." : "Load Subjects"}
-          </button>
-}
-          {Object.keys(subjects).length > 0 && (
-            <>
-              <h3 className="mt-6 font-bold text-lg">Detailed Ratings</h3>
-              {renderRatingsTable()}
+        </div>
+        {
+          ssbError && <p className="text-red-600 font-medium my-4">{ssbError}</p>
+        }
+        {!ssb && <button
+          type="button"
+          onClick={loadSubjects}
+          disabled={loadingSubjects}
+          className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          {loadingSubjects ? "Loading Subjects..." : "Load Subjects"}
+        </button>
+        }
+        {Object.keys(subjects).length > 0 && (
+          <>
+            <h3 className="mt-6 font-bold text-lg">Detailed Ratings</h3>
+            {renderRatingsTable()}
 
-              <h3 className="mt-6 font-bold text-lg">Overall Performance</h3>
-              {renderOverallTable()}
+            <h3 className="mt-6 font-bold text-lg">Overall Performance</h3>
+            {renderOverallTable()}
 
-              <h3 className="mt-6 font-bold text-lg">Comments & Best Teachers</h3>
-              <textarea
-                rows="3"
-                placeholder="Comments..."
-                value={comments}
-                onChange={(e) => setComments(e.target.value)}
-                className="w-full p-2 border rounded mb-4"
-              />
+            <h3 className="mt-6 font-bold text-lg">Comments </h3>
+            <textarea
+              rows="3"
+              placeholder="Comments..."
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            />
 
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                {renderTeacherDropdown("t1", bestTeachers.t1)}
-                {renderTeacherDropdown("t2", bestTeachers.t2)}
-                {renderTeacherDropdown("t3", bestTeachers.t3)}
-              </div>
+            <h3 className="mt-6 font-bold text-lg"> Best Teachers</h3>
+            <div className="grid grid-cols-3 gap-4 mb-4">
 
-              {isError && <p className="text-red-600 font-bold mb-4">{errorMsg}</p>}
+              {renderTeacherDropdown("t1", bestTeachers.t1)}
+              {renderTeacherDropdown("t2", bestTeachers.t2)}
+              {renderTeacherDropdown("t3", bestTeachers.t3)}
+            </div>
 
-              <button
-                type="button"
-                onClick={submitFeedback}
-                className="mt-2 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Submit Feedback
-              </button>
-            </>
-          )}
-        </form>
-      
+            {isError && <p className="text-red-600 font-bold mb-4">{errorMsg}</p>}
+
+            <button
+              type="button"
+              onClick={submitFeedback}
+              className="mt-2 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Submit Feedback
+            </button>
+          </>
+        )}
+      </form>
+
     </div>
   );
 };
@@ -474,7 +516,7 @@ export default FeedbackForm;
 //         const res = await axios.get(`/student/${rollNo}`);
 //         setStudentVerified(true);
 //         setStudentData(res.data.student);
-       
+
 //       } catch (err) {
 //         console.log(err)
 //       }
@@ -520,11 +562,11 @@ export default FeedbackForm;
 //           overall: "",
 //         };
 //       });
-      
+
 //       setSubjects(fetchedSubjects);
 //       setRatings(initRatings);
 //       setOverallData(initOverallData);
-      
+
 
 //     } catch (err) {
 //       console.log(err)
@@ -563,7 +605,7 @@ export default FeedbackForm;
 
 //     for (let code of Object.keys(ratings)) {
 //       if (ratings[code].some((r) => r === "")) {
-        
+
 //         console.log(`Please fill all ratings for ${code}`);
 //         return;
 //       }
@@ -572,14 +614,14 @@ export default FeedbackForm;
 //     for (let code of Object.keys(overallData)) {
 //       const data = overallData[code];
 //       if (!data.syllabus || !data.voice || !data.regularity || !data.ranking || !data.overall) {
-        
+
 //         console.log(`Please fill all overall data for ${code}`);
 //         return;
 //       }
 //     }
 
 //     if (!bestTeachers.t1 || !bestTeachers.t2 || !bestTeachers.t3) {
-     
+
 //       console.log("Please select top 3 best teachers");
 //       return;
 //     }
@@ -755,8 +797,8 @@ export default FeedbackForm;
 
 
 // function renderRatingsChart(sub) {
- 
- 
+
+
 // return (
 //   <div>
 //     <h2>{sub.code} {sub.name} - {sub.teacher}</h2>
@@ -792,7 +834,7 @@ export default FeedbackForm;
 // }
 
 // function handleRating (param, val){
-  
+
 // }
 
 //   return (
@@ -831,7 +873,7 @@ export default FeedbackForm;
 //                   {i + 1}
 //                 </option>
 //               ))
-              
+
 //             }
 //           </select>
 //             </label>
@@ -854,11 +896,11 @@ export default FeedbackForm;
 //         >
 //           {loadingSubjects ? "Loading Subjects..." : "Load Subjects"}
 //         </button>
-            
-           
+
+
 //         </div>
 //       </form>
-          
+
 //         {/* select faculty => a list of all faculty one by one */}
 //         {/* form for that faculty */}
 //         {/* overall feedback */}
@@ -867,14 +909,14 @@ export default FeedbackForm;
 
 
 // <h2>Select Subject</h2>
-    
-   
-    
+
+
+
 //     <select name="subject" id="subject" value={curr_sub}
 //           onChange={(e) => setCurrSub(e.target.value)} >
 //       <option value="">--select--</option> 
 //       {
-       
+
 //         subjects.map((sub) => 
 //         {
 //           return (
@@ -899,7 +941,7 @@ export default FeedbackForm;
 // {currentSubject && (
 //   <RatingForm subjectCode={currentSubject} />
 // )}
-          {/* 
+{/* 
 {step === 2 && (
   <div>
     <h2>{subjects[subjectIndex].subjectName}</h2>
@@ -956,7 +998,7 @@ export default FeedbackForm;
 // {step === 1 && (
 //   <div>
 //     <h2>Select Subject</h2>
-    
+
 //     <select name="subject" id="subject" >
 //       <option value="">--select--</option> 
 //       {
@@ -971,8 +1013,8 @@ export default FeedbackForm;
 //       }
 //     </select>
 //     { Object.entries(subjects).map(([code, { name, teacher }], index) => (
-      
-      
+
+
 //       <button key={code} onClick={() => {
 //         setSubjectIndex(index);
 //         setStep(2);
@@ -995,4 +1037,3 @@ export default FeedbackForm;
 
             } */}
 
-     

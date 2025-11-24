@@ -7,7 +7,9 @@ const Responded = () => {
         <h1 className="text-2xl font-semibold text-yellow-700 mb-2">
           Already Responded!
         </h1>
-        <p className="text-gray-600">Thank you for your time 😊</p>
+        <p className="text-gray-600">
+          Your submission has been recorded successfully.
+          Thank you for your time </p>
       </div>
     </div>
   );
