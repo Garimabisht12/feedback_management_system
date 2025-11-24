@@ -9,6 +9,7 @@ import Dashboard from '../admin/pages/Dashboard';
 import ViewFeedback from '../admin/pages/ViewFeedback';
 import ManageFaculty from '../admin/pages/ManageFaculty';
 import Teacher from '../admin/pages/Teacher';
+import ViewAllFeedbacks from '../admin/pages/ViewAllFeedbacks';
 
 const AppRouter = () => {
   return (
@@ -20,6 +21,7 @@ const AppRouter = () => {
       <Route path='/responded' element={<Responded />} />
       <Route path='/adminDashboard' element={<Dashboard />} />
       <Route path='/viewFeedback' element={<ViewFeedback />} />
+      <Route path='/viewAllFeedbacks' element={<ViewAllFeedbacks />} />
       <Route path='/manageFaculty' element={<ManageFaculty />} />
       <Route path='/teacher' element={<Teacher />} />
     </Routes>

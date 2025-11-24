@@ -7,6 +7,8 @@ const ManageFaculty = () => {
   const [subjects, setSubjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [editingFaculty, setEditingFaculty] = useState(null)
   const [formData, setFormData] = useState({
     teacherName: '',
     department: '',
@@ -23,10 +25,10 @@ const ManageFaculty = () => {
     try {
       setLoading(true)
       const [facultyRes, subjectRes] = await Promise.all([
-        axios.get('/faculty/all'),
+        axios.get('/admin/teachers'),
         axios.get('/subjects/all')
       ])
-      setFaculties(facultyRes.data || [])
+      setFaculties(facultyRes.data.data || [])
       setSubjects(subjectRes.data || [])
       setLoading(false)
     } catch (error) {
@@ -61,7 +63,7 @@ const ManageFaculty = () => {
         subjectsTaught: selectedSubjects
       }
 
-      await axios.post('/faculty/add', facultyData)
+      await axios.post('/admin/teachers', facultyData)
 
       // Reset form
       setFormData({
@@ -84,7 +86,7 @@ const ManageFaculty = () => {
   const handleDeleteFaculty = async (facultyId, teacherName) => {
     if (window.confirm(`Are you sure you want to delete ${teacherName}?`)) {
       try {
-        await axios.delete(`/faculty/delete/${facultyId}`)
+        await axios.delete(`/admin/teachers/${facultyId}`)
         fetchData()
         alert('Faculty deleted successfully!')
       } catch (error) {
@@ -92,6 +94,58 @@ const ManageFaculty = () => {
         alert(error.response?.data?.message || 'Failed to delete faculty')
       }
     }
+  }
+
+  const handleEditClick = (faculty) => {
+    setEditingFaculty(faculty)
+    setFormData({
+      teacherName: faculty.teacherName,
+      department: faculty.department,
+      subjectsTaught: faculty.subjectsTaught || []
+    })
+    setSelectedSubjects(faculty.subjectsTaught || [])
+    setShowEditForm(true)
+    setShowAddForm(false)
+  }
+
+  const handleUpdateFaculty = async (e) => {
+    e.preventDefault()
+    try {
+      const facultyData = {
+        ...formData,
+        subjectsTaught: selectedSubjects
+      }
+
+      await axios.put(`/admin/teachers/${editingFaculty._id}`, facultyData)
+
+      // Reset form
+      setFormData({
+        teacherName: '',
+        department: '',
+        subjectsTaught: []
+      })
+      setSelectedSubjects([])
+      setShowEditForm(false)
+      setEditingFaculty(null)
+
+      // Refresh faculty list
+      fetchData()
+      alert('Faculty updated successfully!')
+    } catch (error) {
+      console.error('Error updating faculty:', error)
+      alert(error.response?.data?.message || 'Failed to update faculty')
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setShowEditForm(false)
+    setEditingFaculty(null)
+    setFormData({
+      teacherName: '',
+      department: '',
+      subjectsTaught: []
+    })
+    setSelectedSubjects([])
   }
 
   const handleBack = () => {
@@ -108,7 +162,13 @@ const ManageFaculty = () => {
             <h1 className="text-3xl font-bold text-[#4a4238] tracking-tight">Manage Faculty</h1>
             <div className="flex gap-3">
               <button
-                onClick={() => setShowAddForm(!showAddForm)}
+                onClick={() => {
+                  setShowAddForm(!showAddForm)
+                  setShowEditForm(false)
+                  setEditingFaculty(null)
+                  setFormData({ teacherName: '', department: '', subjectsTaught: [] })
+                  setSelectedSubjects([])
+                }}
                 className="px-6 py-2 bg-gradient-to-br from-[#d4c5b9] to-[#b8a99a] text-white rounded-lg font-medium transition-all duration-300 hover:from-[#c4b5a6] hover:to-[#a89989] hover:shadow-lg"
               >
                 {showAddForm ? 'Cancel' : 'Add Faculty'}
@@ -195,6 +255,87 @@ const ManageFaculty = () => {
           </div>
         )}
 
+        {/* Edit Faculty Form */}
+        {showEditForm && editingFaculty && (
+          <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(139,123,105,0.15)] p-8 mb-6">
+            <h2 className="text-2xl font-semibold text-[#4a4238] mb-6">Edit Faculty</h2>
+            <form onSubmit={handleUpdateFaculty}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block mb-2 text-[#5a4f45] text-sm font-medium">
+                    Teacher Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="teacherName"
+                    value={formData.teacherName}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter teacher name"
+                    className="w-full px-4 py-3 border-2 border-[#e8e4dc] rounded-lg text-[#4a4238] bg-[#fafaf8] transition-all duration-300 focus:outline-none focus:border-[#c4b5a6] focus:bg-white placeholder:text-[#b8a99a]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-[#5a4f45] text-sm font-medium">
+                    Department *
+                  </label>
+                  <input
+                    type="text"
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter department"
+                    className="w-full px-4 py-3 border-2 border-[#e8e4dc] rounded-lg text-[#4a4238] bg-[#fafaf8] transition-all duration-300 focus:outline-none focus:border-[#c4b5a6] focus:bg-white placeholder:text-[#b8a99a]"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block mb-3 text-[#5a4f45] text-sm font-medium">
+                  Subjects Taught
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-4 bg-[#fafaf8] rounded-lg border-2 border-[#e8e4dc]">
+                  {subjects.map((subject, index) => (
+                    <label
+                      key={index}
+                      className="flex items-center space-x-2 cursor-pointer hover:bg-white p-2 rounded transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSubjects.includes(subject.subjectName)}
+                        onChange={() => handleSubjectToggle(subject.subjectName)}
+                        className="w-4 h-4 text-[#d4c5b9] border-[#c4b5a6] rounded focus:ring-[#d4c5b9]"
+                      />
+                      <span className="text-sm text-[#4a4238]">{subject.subjectName}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-[#8b7b69] mt-2">
+                  Selected: {selectedSubjects.length} subjects
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="flex-1 px-6 py-3 bg-gradient-to-br from-[#d4c5b9] to-[#b8a99a] text-white rounded-lg font-semibold transition-all duration-300 hover:from-[#c4b5a6] hover:to-[#a89989] hover:shadow-lg uppercase tracking-wider"
+                >
+                  Update Faculty
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold transition-all duration-300 hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         {/* Faculty List */}
         <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(139,123,105,0.15)] overflow-hidden">
           <div className="p-6 bg-gradient-to-r from-[#d4c5b9] to-[#b8a99a]">
@@ -252,12 +393,20 @@ const ManageFaculty = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => handleDeleteFaculty(faculty._id, faculty.teacherName)}
-                          className="px-4 py-2 bg-gradient-to-br from-[#f5d5d5] to-[#f5b5b5] text-[#991b1b] rounded-lg font-medium transition-all duration-300 hover:from-[#f5b5b5] hover:to-[#f59595] hover:shadow-lg"
-                        >
-                          Delete
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEditClick(faculty)}
+                            className="px-4 py-2 bg-gradient-to-br from-[#a8c5d9] to-[#7a99ba] text-white rounded-lg font-medium transition-all duration-300 hover:from-[#98b5c9] hover:to-[#6a89aa] hover:shadow-lg"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteFaculty(faculty._id, faculty.teacherName)}
+                            className="px-4 py-2 bg-gradient-to-br from-[#f5d5d5] to-[#f5b5b5] text-[#991b1b] rounded-lg font-medium transition-all duration-300 hover:from-[#f5b5b5] hover:to-[#f59595] hover:shadow-lg"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

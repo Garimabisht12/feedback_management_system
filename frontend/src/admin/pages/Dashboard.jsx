@@ -13,8 +13,8 @@ const Dashboard = () => {
 
   const fetchTotalFeedbacks = async () => {
     try {
-      const response = await axios.get('/feedback/all')
-      setTotalFeedbacks(response.data.length || 0)
+      const response = await axios.get('/admin/feedbacks/count')
+      setTotalFeedbacks(response.data.totalFeedbacks || 0)
       setLoading(false)
     } catch (error) {
       console.error('Error fetching feedbacks:', error)
@@ -58,7 +58,14 @@ const Dashboard = () => {
             onClick={() => navigate('/viewFeedback')}
             className="w-full px-6 py-4 bg-gradient-to-br from-[#d4c5b9] to-[#b8a99a] text-white border-none rounded-xl text-lg font-semibold cursor-pointer transition-all duration-300 uppercase tracking-wider shadow-[0_4px_15px_rgba(139,123,105,0.25)] hover:from-[#c4b5a6] hover:to-[#a89989] hover:translate-y-[-3px] hover:shadow-[0_6px_20px_rgba(139,123,105,0.3)] active:translate-y-[-1px]"
           >
-            View Feedbacks
+            View Feedback Analytics
+          </button>
+
+          <button
+            onClick={() => navigate('/viewAllFeedbacks')}
+            className="w-full px-6 py-4 bg-gradient-to-br from-[#a8c5d9] to-[#7a99ba] text-white border-none rounded-xl text-lg font-semibold cursor-pointer transition-all duration-300 uppercase tracking-wider shadow-[0_4px_15px_rgba(122,153,186,0.25)] hover:from-[#98b5c9] hover:to-[#6a89aa] hover:translate-y-[-3px] hover:shadow-[0_6px_20px_rgba(122,153,186,0.3)] active:translate-y-[-1px]"
+          >
+            View All Feedbacks
           </button>
 
           <button
