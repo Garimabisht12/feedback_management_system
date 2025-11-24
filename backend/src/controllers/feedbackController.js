@@ -1,5 +1,5 @@
 // controllers/feedbackController.js
-const Feedback = require('../src/models/Feedback');
+const Feedback = require('../models/Feedback');
 
 
 // GET /feedback-status/:rollNumber
@@ -12,7 +12,7 @@ exports.checkFeedbackStatus = async (req, res) => {
     if (!existingFeedback) {
       return res.json({ submitted: false });
     }
-    return res.json({ submitted: true });
+    return res.json({ submitted: true }); 
 
   } catch (error) {
     console.error(error);
@@ -193,7 +193,7 @@ exports.getTeacherAnalytics = async (req, res) => {
     // Filter feedbacks that include this teacher in ratings or overallData
     const teacherFeedbacks = feedbacks.filter(feedback => {
       if (feedback.ratings) {
-        const hasTeacherInRatings = Object.keys(feedback.ratings).some(key =>
+        const hasTeacherInRatings = Object.keys(feedback.ratings).some(key => 
           key.toLowerCase().includes(teacherName.toLowerCase())
         );
         if (hasTeacherInRatings) return true;
@@ -210,7 +210,7 @@ exports.getTeacherAnalytics = async (req, res) => {
     const totalFeedbacks = teacherFeedbacks.length;
 
     // Count how many times voted as best teacher
-    const bestTeacherVotes = feedbacks.filter(f =>
+    const bestTeacherVotes = feedbacks.filter(f => 
       f.bestTeachers && f.bestTeachers.includes(teacherName)
     ).length;
 
@@ -226,7 +226,7 @@ exports.getTeacherAnalytics = async (req, res) => {
                 parameterRatings: Array(9).fill(0).map(() => [])
               };
             }
-
+            
             // Store individual parameter ratings
             const firstNine = ratingsArray.slice(0, 9);
             firstNine.forEach((rating, index) => {
@@ -260,8 +260,8 @@ exports.getTeacherAnalytics = async (req, res) => {
       Object.values(subjectRatings).forEach(data => {
         allRatings = allRatings.concat(data.parameterRatings[index]);
       });
-      const avg = allRatings.length > 0
-        ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
+      const avg = allRatings.length > 0 
+        ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length 
         : 0;
       return {
         parameter: name,

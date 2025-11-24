@@ -6,10 +6,10 @@ require('dotenv').config();
 
 
 
-const loginRoutes = require('./routes/login');
-const subjectRoutes = require('./routes/subjectsRoutes');
-const feedbackRoutes = require('./routes/feedbackRoutes');
-const studentRoutes = require('./routes/studentRoutes');
+const loginRoutes = require('./src/routes/login');
+const subjectRoutes = require('./src/routes/studentRoutes');
+const feedbackRoutes = require('./src/routes/feedbackRoutes');
+const studentRoutes = require('./src/routes/studentRoutes');
 
 const app = express()
 app.use(cors({

@@ -8,6 +8,7 @@ import AdminLogin from '../pages/AdminLogin'
 import Dashboard from '../admin/pages/Dashboard';
 import ViewFeedback from '../admin/pages/ViewFeedback';
 import ManageFaculty from '../admin/pages/ManageFaculty';
+import Teacher from '../admin/pages/Teacher';
 
 const AppRouter = () => {
   return (
@@ -20,6 +21,7 @@ const AppRouter = () => {
       <Route path='/adminDashboard' element={<Dashboard />} />
       <Route path='/viewFeedback' element={<ViewFeedback />} />
       <Route path='/manageFaculty' element={<ManageFaculty />} />
+      <Route path='/teacher' element={<Teacher />} />
     </Routes>
   )
 }

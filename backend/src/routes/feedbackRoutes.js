@@ -1,7 +1,7 @@
 // routes/feedbackRoutes.js
 const express = require('express');
 const router = express.Router();
-const { submitFeedback, checkFeedbackStatus, getFeedbackAnalytics, getTeacherAnalytics } = require('../src/controllers/feedbackController');
+const { submitFeedback, checkFeedbackStatus, getFeedbackAnalytics, getTeacherAnalytics } = require('../controllers/feedbackController');
 
 router.post('/feedback', submitFeedback);
 router.get("/feedback-status/:rollNumber", checkFeedbackStatus);
