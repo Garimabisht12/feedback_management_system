@@ -16,7 +16,8 @@ const {
     deleteTeacher,
     addSubjectToTeacher,
     removeSubjectFromTeacher,
-    getTeachersByDepartment
+    getTeachersByDepartment,
+    getTeachersAnalytics
 } = require('../controllers/adminController');
 
 // ================== FEEDBACK ROUTES ==================
@@ -37,6 +38,9 @@ router.delete('/feedbacks/:id', deleteFeedback);
 
 // Get all teachers
 router.get('/teachers', getAllTeachers);
+
+// Aggregated analytics for all teachers (uses subjectsTaught + feedback data) - MUST BE BEFORE :id
+router.get('/teachers/analytics', getTeachersAnalytics);
 
 // Get teachers by department
 router.get('/teachers/department/:department', getTeachersByDepartment);

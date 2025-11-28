@@ -92,12 +92,22 @@ exports.getFeedbackAnalytics = async (req, res) => {
     const subjectRatings = {};
     feedbacks.forEach(feedback => {
       if (feedback.ratings) {
-        Object.entries(feedback.ratings).forEach(([subjectCode, ratingsArray]) => {
+        // Handle both Map and plain object
+        const ratingsEntries = feedback.ratings instanceof Map 
+          ? Array.from(feedback.ratings.entries()) 
+          : Object.entries(feedback.ratings);
+        
+        ratingsEntries.forEach(([subjectCode, ratingsArray]) => {
           if (!subjectRatings[subjectCode]) {
             subjectRatings[subjectCode] = {
               totalRatings: [],
               count: 0
             };
+          }
+
+          // Ensure ratingsArray is an array
+          if (!Array.isArray(ratingsArray)) {
+            ratingsArray = Array.from(ratingsArray || []);
           }
 
           // Calculate average for this feedback (first 9 ratings, 1-5 scale)
@@ -218,13 +228,23 @@ exports.getTeacherAnalytics = async (req, res) => {
     const subjectRatings = {};
     teacherFeedbacks.forEach(feedback => {
       if (feedback.ratings) {
-        Object.entries(feedback.ratings).forEach(([subjectCode, ratingsArray]) => {
+        // Handle both Map and plain object
+        const ratingsEntries = feedback.ratings instanceof Map 
+          ? Array.from(feedback.ratings.entries()) 
+          : Object.entries(feedback.ratings);
+        
+        ratingsEntries.forEach(([subjectCode, ratingsArray]) => {
           if (subjectCode.toLowerCase().includes(teacherName.toLowerCase())) {
             if (!subjectRatings[subjectCode]) {
               subjectRatings[subjectCode] = {
                 ratings: [],
                 parameterRatings: Array(9).fill(0).map(() => [])
               };
+            }
+            
+            // Ensure ratingsArray is an array
+            if (!Array.isArray(ratingsArray)) {
+              ratingsArray = Array.from(ratingsArray || []);
             }
             
             // Store individual parameter ratings
