@@ -20,6 +20,8 @@ const {
     getTeachersAnalytics
 } = require('../controllers/adminController');
 
+const { uploadSubjects } = require('../controllers/feedbackController');
+
 // ================== FEEDBACK ROUTES ==================
 
 // Get all feedbacks
@@ -62,5 +64,10 @@ router.patch('/teachers/:id/subjects', addSubjectToTeacher);
 
 // Remove subject from teacher
 router.patch('/teachers/:id/subjects/remove', removeSubjectFromTeacher);
+
+// ================== UPLOAD ROUTES ==================
+
+// Upload subjects and faculty
+router.post('/uploadSubjects', uploadSubjects);
 
 module.exports = router;

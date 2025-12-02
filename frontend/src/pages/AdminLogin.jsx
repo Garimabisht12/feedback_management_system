@@ -9,6 +9,10 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleBack = () => {
+    navigate('/');
+  }
+
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -110,6 +114,17 @@ const AdminLogin = () => {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        {/* Back Button */}
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="w-full px-4 py-3 bg-gray-200 text-gray-800 border-none rounded-lg text-base font-semibold cursor-pointer transition-all duration-300 hover:bg-gray-300 hover:translate-y-[-2px] active:translate-y-0"
+          >
+            ← Back
+          </button>
+        </div>
 
         {/* Footer */}
         <div className="text-center pt-5 border-t border-[#dbeafe]">

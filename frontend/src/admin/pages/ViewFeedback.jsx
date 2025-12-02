@@ -13,8 +13,16 @@ const feedbackParams = [
   { sNo: 7, parameter: "Teacher's punctuality" },
   { sNo: 8, parameter: "Teacher's ability to control class" },
   { sNo: 9, parameter: "Teacher's accessibility & help outside the class" },
-  { sNo: 10, parameter: "Overall rating of the teacher (Excellent, Very Good, Good)" },
 ];
+
+const calculateAverageRating = (parameterAverages) => {
+  if (!parameterAverages || parameterAverages.length === 0) return 0;
+  const sum = parameterAverages.reduce((acc, val) => {
+    const numVal = typeof val === 'number' ? val : (val?.average || 0);
+    return acc + numVal;
+  }, 0);
+  return (sum / parameterAverages.length).toFixed(2);
+};
 
 
 const ViewFeedback = () => {
@@ -268,8 +276,8 @@ const ViewFeedback = () => {
                   </div>
                 </div>
 
-                {/* Key Metrics Row 2 - Overall Data (Syllabus, Voice, Regularity) */}
-                <div className="grid grid-cols-3 gap-3">
+                {/* Key Metrics Row 2 - Overall Data (Syllabus, Voice, Regularity, Avg Parameters) */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="bg-orange-50 p-3 rounded-lg">
                     <p className="text-xs text-gray-600 font-medium">Syllabus</p>
                     <p className="text-2xl font-bold text-orange-600">{selectedTeacher.avgSyllabus}/10</p>
@@ -282,6 +290,10 @@ const ViewFeedback = () => {
                     <p className="text-xs text-gray-600 font-medium">Regularity</p>
                     <p className="text-2xl font-bold text-cyan-600">{selectedTeacher.avgRegularity}/10</p>
                   </div>
+                  <div className="bg-indigo-50 p-3 rounded-lg">
+                    <p className="text-xs text-gray-600 font-medium">Avg Parameters</p>
+                    <p className="text-2xl font-bold text-indigo-600">{calculateAverageRating(selectedTeacher.parameterAverages)}/5</p>
+                  </div>
                 </div>
 
                 {/* Parameter-wise Averages (9 parameters) */}
@@ -289,22 +301,25 @@ const ViewFeedback = () => {
                   <div className="pt-4 border-t border-gray-200">
                     <p className="text-xs font-bold text-gray-700 uppercase mb-3">Parameter-Wise Averages</p>
                     <div className="space-y-2">
-                      {selectedTeacher.parameterAverages.map((avg, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-gray-50 p-3 rounded">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">{feedbackParams[idx]?.parameter || `Parameter ${idx + 1}`}</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="w-32 bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${(avg / 5) * 100}%` }}
-                              ></div>
+                      {selectedTeacher.parameterAverages.map((avg, idx) => {
+                        const numVal = typeof avg === 'number' ? avg : (avg?.average || 0);
+                        return (
+                          <div key={idx} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-900">{feedbackParams[idx]?.parameter || `Parameter ${idx + 1}`}</p>
                             </div>
-                            <span className="text-sm font-bold text-gray-900 w-10 text-right">{avg}/5</span>
+                            <div className="flex items-center gap-3">
+                              <div className="w-32 bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${(numVal / 5) * 100}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-sm font-bold text-gray-900 w-10 text-right">{numVal.toFixed(2)}/5</span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

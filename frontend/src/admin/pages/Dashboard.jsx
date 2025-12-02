@@ -30,6 +30,10 @@ const Dashboard = () => {
     navigate('/adminLogin')
   }
 
+  const handleUploadSubjects = () => {
+    navigate('/uploadSubjects');
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f5f5f0] to-[#e8e4dc] flex items-center justify-center p-5">
       <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(139,123,105,0.15)] p-10 max-w-4xl w-full">
@@ -73,6 +77,13 @@ const Dashboard = () => {
             className="w-full px-6 py-4 bg-gradient-to-br from-[#e8d5c4] to-[#d4c5b9] text-[#4a4238] border-none rounded-xl text-lg font-semibold cursor-pointer transition-all duration-300 uppercase tracking-wider shadow-[0_4px_15px_rgba(139,123,105,0.2)] hover:from-[#d8c5b4] hover:to-[#c4b5a6] hover:translate-y-[-3px] hover:shadow-[0_6px_20px_rgba(139,123,105,0.25)] active:translate-y-[-1px]"
           >
             Manage Faculty
+          </button>
+
+          <button
+            onClick={handleUploadSubjects}
+            className="w-full px-6 py-4 bg-gradient-to-br from-[#e8d5c4] to-[#d4c5b9] text-[#4a4238] border-none rounded-xl text-lg font-semibold cursor-pointer transition-all duration-300 uppercase tracking-wider shadow-[0_4px_15px_rgba(139,123,105,0.2)] hover:from-[#d8c5b4] hover:to-[#c4b5a6] hover:translate-y-[-3px] hover:shadow-[0_6px_20px_rgba(139,123,105,0.25)] active:translate-y-[-1px]"
+          >
+            Upload Subjects and Faculty
           </button>
 
           <button

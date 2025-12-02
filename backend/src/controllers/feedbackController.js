@@ -1,9 +1,11 @@
 // controllers/feedbackController.js
 const Feedback = require('../models/Feedback');
+const Subject = require('../models/Subjects');
+const Faculty = require('../models/Faculty');
 
 
 // GET /feedback-status/:rollNumber
-exports.checkFeedbackStatus = async (req, res) => {
+const checkFeedbackStatus = async (req, res) => {
   try {
     const { rollNumber } = req.params;
     const existingFeedback = await Feedback.findOne({ studentRoll: Number(rollNumber) });
@@ -22,7 +24,7 @@ exports.checkFeedbackStatus = async (req, res) => {
 
 
 
-exports.submitFeedback = async (req, res) => {
+const submitFeedback = async (req, res) => {
   try {
     const {
       studentRoll,
@@ -65,7 +67,7 @@ exports.submitFeedback = async (req, res) => {
 };
 
 // GET /feedback/analytics - Get comprehensive feedback analytics
-exports.getFeedbackAnalytics = async (req, res) => {
+const getFeedbackAnalytics = async (req, res) => {
   try {
     const feedbacks = await Feedback.find({});
 
@@ -195,7 +197,7 @@ exports.getFeedbackAnalytics = async (req, res) => {
 };
 
 // GET /feedback/teacher/:teacherName - Get specific teacher analytics
-exports.getTeacherAnalytics = async (req, res) => {
+const getTeacherAnalytics = async (req, res) => {
   try {
     const { teacherName } = req.params;
     const feedbacks = await Feedback.find({});
@@ -353,4 +355,123 @@ exports.getTeacherAnalytics = async (req, res) => {
     console.error('Error fetching teacher analytics:', err);
     return res.status(500).json({ message: 'Internal server error', error: err.message });
   }
+};
+
+const uploadSubjects = async (req, res) => {
+  try {
+    const subjectsData = req.body;
+    console.log('Received data:', subjectsData);
+    
+    // Validate that we have data
+    if (!Array.isArray(subjectsData) || subjectsData.length === 0) {
+      return res.status(400).json({ message: 'No data provided' });
+    }
+
+    // Process each row from the Excel file
+    const subjectRecords = [];
+    const facultyMap = new Map();
+
+    for (const row of subjectsData) {
+      // Extract fields from Excel (adjust column names as needed)
+      const subjectCode = row['Subject Code'] || row['subjectCode'] || row['Code'];
+      const subjectName = row['Subject Name'] || row['subjectName'] || row['Name'];
+      const teacherName = row['Faculty Name'] || row['teacherName'] || row['Teacher'];
+      const session = row['Session'] || row['session'] || '2024-2025';
+      const semester = row['Semester'] || row['semester'] || 1;
+      const batch = row['Batch'] || row['batch'] || new Date().getFullYear();
+      const department = row['Department'] || row['department'] || 'CSE';
+
+      if (!subjectCode || !subjectName || !teacherName) {
+        console.warn('Skipping row with missing required fields:', row);
+        continue;
+      }
+
+      // Add subject record
+      subjectRecords.push({
+        subjectCode,
+        subjectName,
+        teacherName,
+        session,
+        semester,
+        batch
+      });
+
+      // Track faculty and their subjects
+      if (!facultyMap.has(teacherName)) {
+        facultyMap.set(teacherName, {
+          teacherName,
+          department,
+          subjects: []
+        });
+      }
+      facultyMap.get(teacherName).subjects.push(subjectCode);
+    }
+
+    console.log('Processed records:', { subjectRecords: subjectRecords.length, faculty: facultyMap.size });
+
+    // Save subjects to database using upsert to handle duplicates
+    if (subjectRecords.length > 0) {
+      try {
+        const firstRecord = subjectRecords[0];
+        console.log('Upserting subjects for session:', firstRecord.session, 'semester:', firstRecord.semester);
+        
+        // Upsert each subject record
+        let upsertCount = 0;
+        for (const subject of subjectRecords) {
+          const result = await Subject.findOneAndUpdate(
+            {
+              session: subject.session,
+              semester: subject.semester,
+              batch: subject.batch,
+              subjectCode: subject.subjectCode
+            },
+            subject,
+            { upsert: true, new: true }
+          );
+          upsertCount++;
+        }
+        console.log('Subjects upserted successfully:', upsertCount);
+      } catch (dbError) {
+        console.error('Database error while saving subjects:', dbError.message);
+        throw dbError;
+      }
+    }
+
+    // Save/Update faculty to database
+    console.log('Updating faculty records...');
+    for (const [teacherName, facultyData] of facultyMap) {
+      await Faculty.findOneAndUpdate(
+        { teacherName: teacherName },
+        {
+          teacherName: teacherName,
+          department: facultyData.department,
+          subjectsTaught: facultyData.subjects
+        },
+        { upsert: true, new: true }
+      );
+    }
+    console.log('Faculty records updated successfully');
+
+    res.status(200).json({ 
+      message: 'Subjects and faculty added successfully.',
+      subjectsAdded: subjectRecords.length,
+      facultyUpdated: facultyMap.size
+    });
+  } catch (error) {
+    console.error('Error processing upload:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      message: 'Error processing upload.',
+      error: error.message,
+      details: error.toString()
+    });
+  }
+};
+
+module.exports = { 
+  checkFeedbackStatus, 
+  submitFeedback, 
+  getFeedbackAnalytics, 
+  getTeacherAnalytics,
+  uploadSubjects 
 };

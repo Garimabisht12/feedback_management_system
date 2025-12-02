@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from '../../api/axios'
 
+const feedbackParams = [
+  { sNo: 1, parameter: "Teacher's Voice Skill" },
+  { sNo: 2, parameter: "Systematic delivery" },
+  { sNo: 3, parameter: "Teacher's behaviour" },
+  { sNo: 4, parameter: "Interaction with students/Inactiveness in class" },
+  { sNo: 5, parameter: "Teacher's command over the subject" },
+  { sNo: 6, parameter: "Discussion on question/example" },
+  { sNo: 7, parameter: "Teacher's punctuality" },
+  { sNo: 8, parameter: "Teacher's ability to control class" },
+  { sNo: 9, parameter: "Teacher's accessibility & help outside the class" },
+];
+
 const Teacher = () => {
   const [analytics, setAnalytics] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -40,28 +52,32 @@ const Teacher = () => {
   // Bar Chart Component
   const BarChart = ({ data, title, valueKey = 'average', maxValue = 5 }) => {
     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#06b6d4']
+    
+    // Filter to show only first 9 parameters
+    const filteredData = data.slice(0, 9)
 
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4">{title}</h3>
-        <div className="space-y-3">
-          {data.map((item, index) => {
+        <div className="space-y-4">
+          {filteredData.map((item, index) => {
             const isPrimitive = typeof item === 'number' || typeof item === 'string'
             const numericValue = isPrimitive
               ? Number(item)
               : (item?.[valueKey] ?? item?.average ?? item?.value ?? null)
 
+            // Use parameter name from feedbackParams array
             const label = !isPrimitive
-              ? (item.parameter || item.subjectName || item.subjectCode || item.label)
-              : `P${index + 1}`
+              ? (item.parameter || feedbackParams[index]?.parameter || `Parameter ${index + 1}`)
+              : feedbackParams[index]?.parameter || `Parameter ${index + 1}`
 
             const pct = (numericValue != null && !Number.isNaN(numericValue))
               ? Math.max(0, Math.min(100, (numericValue / maxValue) * 100))
               : 0
 
             return (
-              <div key={index} className="flex items-center gap-3">
-                <div className="w-48 text-sm text-gray-700 truncate" title={label}>
+              <div key={index} className="flex items-center gap-4">
+                <div className="w-64 text-sm font-medium text-gray-700 truncate" title={label}>
                   {label}
                 </div>
                 <div className="flex-1 bg-gray-200 rounded-full h-8 relative overflow-hidden">

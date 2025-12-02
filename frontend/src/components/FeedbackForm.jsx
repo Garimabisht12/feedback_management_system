@@ -39,6 +39,10 @@ const FeedbackForm = () => {
   const rollFromLogin = location.state?.rollNo || "";
   const [rollNo, setRollNo] = useState(rollFromLogin);
 
+  const handleBack = () => {
+    navigate('/');
+  }
+
   // get student data
   useEffect(() => {
     const fetchData = async () => {
@@ -207,42 +211,42 @@ const FeedbackForm = () => {
     }
   };
 
-  // Calculate total rating for a subject (sum of first 9 ratings)
-  const calculateTotalRating = (subjectCode) => {
+  // Calculate average rating for a subject (average of first 9 ratings)
+  const calculateAverageRating = (subjectCode) => {
     const subjectRatings = ratings[subjectCode] || [];
-    const sum = subjectRatings.slice(0, 9).reduce((acc, val) => {
+    const firstNineRatings = subjectRatings.slice(0, 9);
+    const validRatings = firstNineRatings.filter(r => r !== '' && r !== null && r !== undefined);
+    if (validRatings.length === 0) return 0;
+    const sum = validRatings.reduce((acc, val) => {
       const num = parseInt(val) || 0;
       return acc + num;
     }, 0);
-    return sum;
+    return (sum / 9).toFixed(2);
   };
 
   const renderRatingsTable = () => (
-    <table className="min-w-full border-collapse border border-gray-300 my-4">
-      <thead className="bg-gray-100">
-        <tr>
-          <th className="p-2 border">S.No</th>
-          <th className="p-2 border">Parameter</th>
-          {Object.entries(subjects).map(([code, { name, teacher }]) => (
-            <th key={code} className="p-2 border">
-              {code} <br /> {name} <br /> {teacher}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {feedbackParams.map((param, i) => (
-          <tr key={param.sNo}>
-            <td className="p-1 border text-center">{param.sNo}</td>
-            <td className="p-1 border">{param.parameter}</td>
-            {Object.keys(subjects).map((code) => (
-              <td key={code} className="p-1 border text-center">
-                {i === 9 ? (
-                  // Row 10: Show calculated total (sum of ratings 1-9)
-                  <div className="w-full text-center font-bold text-lg bg-blue-100 py-2">
-                    {calculateTotalRating(code)}
-                  </div>
-                ) : (
+    <div className="overflow-x-auto rounded-lg border border-gray-300 my-4">
+      <table className="border-collapse">
+        <thead className="bg-gray-100 sticky top-0">
+          <tr>
+            <th className="p-2 border border-gray-300 text-left text-sm font-semibold w-12 sticky left-0 bg-gray-100 z-20">S.No</th>
+            <th className="p-2 border border-gray-300 text-left text-sm font-semibold min-w-[200px] sticky left-12 bg-gray-100 z-20">Parameter</th>
+            {Object.entries(subjects).map(([code, { name, teacher }]) => (
+              <th key={code} className="p-2 border border-gray-300 text-center text-xs font-semibold min-w-[120px] bg-blue-50">
+                <div className="font-bold">{code}</div>
+                <div className="text-xs text-gray-700">{name}</div>
+                <div className="text-xs text-gray-600 italic">{teacher}</div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {feedbackParams.slice(0, 9).map((param, i) => (
+            <tr key={param.sNo} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+              <td className="p-2 border border-gray-300 text-center font-semibold text-sm sticky left-0 bg-inherit z-10">{param.sNo}</td>
+              <td className="p-2 border border-gray-300 text-sm font-medium min-w-[200px] sticky left-12 bg-inherit z-10">{param.parameter}</td>
+              {Object.keys(subjects).map((code) => (
+                <td key={code} className="p-2 border border-gray-300 text-center">
                   <input
                     type="number"
                     min="1"
@@ -250,94 +254,107 @@ const FeedbackForm = () => {
                     value={ratings[code]?.[i] || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      // Only allow values between 1-5 or empty
                       if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 5)) {
                         handleRatingChange(code, i, value);
                       }
                     }}
-                    className="w-full text-center border-none bg-transparent focus:ring-0"
+                    className="w-full text-center border-none bg-transparent focus:ring-0 font-semibold"
                     placeholder="1-5"
                   />
-                )}
+                </td>
+              ))}
+            </tr>
+          ))}
+          {/* Row for Overall Rating - Average of all 9 parameters */}
+          <tr className="bg-gradient-to-r from-blue-50 to-blue-100">
+            <td className="p-2 border border-gray-300 text-center font-semibold text-sm sticky left-0 bg-blue-50 z-10">Avg</td>
+            <td className="p-2 border border-gray-300 text-sm font-bold text-blue-700 min-w-[200px] sticky left-12 bg-blue-50 z-10">Overall Rating (Avg)</td>
+            {Object.keys(subjects).map((code) => (
+              <td key={code} className="p-2 border border-gray-300 text-center">
+                <div className="w-full text-center font-bold text-lg bg-blue-200 py-2 rounded">
+                  {calculateAverageRating(code)}
+                </div>
               </td>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   );
 
   const renderOverallTable = () => (
-    <table className="min-w-full border-collapse border border-gray-300 my-4">
-      <thead className="bg-gray-100">
-        <tr>
-          <th className="p-2 border">Subject</th>
-          <th className="p-2 border">Teacher</th>
-          <th className="p-2 border">Syllabus (1-10)</th>
-          <th className="p-2 border">Voice Skills (1-10)</th>
-          <th className="p-2 border">Regularity (1-10)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {Object.entries(subjects).map(([code, { name, teacher }]) => (
-          <tr key={code}>
-            <td className="p-1 border">{code} - {name}</td>
-            <td className="p-1 border">{teacher}</td>
-            <td className="p-1 border">
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={overallData[code]?.syllabus || ""}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 10)) {
-                    handleOverallDataChange(code, "syllabus", value);
-                  }
-                }}
-                className="w-full border-none bg-transparent text-center"
-                placeholder="1-10"
-              />
-            </td>
-            <td className="p-1 border">
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={overallData[code]?.voice || ""}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 10)) {
-                    handleOverallDataChange(code, "voice", value);
-                  }
-                }}
-                className="w-full border-none bg-transparent text-center"
-                placeholder="1-10"
-              />
-            </td>
-            <td className="p-1 border">
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={overallData[code]?.regularity || ""}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 10)) {
-                    handleOverallDataChange(code, "regularity", value);
-                  }
-                }}
-                className="w-full border-none bg-transparent text-center"
-                placeholder="1-10"
-              />
-            </td>
+    <div className="overflow-x-auto rounded-lg border border-gray-300 my-4">
+      <table className="w-full border-collapse">
+        <thead className="bg-gray-100 sticky top-0">
+          <tr>
+            <th className="p-2 border border-gray-300 text-left text-sm font-semibold min-w-[150px]">Subject</th>
+            <th className="p-2 border border-gray-300 text-left text-sm font-semibold min-w-[120px]">Teacher</th>
+            <th className="p-2 border border-gray-300 text-center text-sm font-semibold min-w-[100px]">Syllabus (1-10)</th>
+            <th className="p-2 border border-gray-300 text-center text-sm font-semibold min-w-[100px]">Voice Skills (1-10)</th>
+            <th className="p-2 border border-gray-300 text-center text-sm font-semibold min-w-[100px]">Regularity (1-10)</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {Object.entries(subjects).map(([code, { name, teacher }], idx) => (
+            <tr key={code} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+              <td className="p-2 border border-gray-300 text-sm font-medium">{code} - {name}</td>
+              <td className="p-2 border border-gray-300 text-sm">{teacher}</td>
+              <td className="p-2 border border-gray-300">
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={overallData[code]?.syllabus || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 10)) {
+                      handleOverallDataChange(code, "syllabus", value);
+                    }
+                  }}
+                  className="w-full border-none bg-transparent text-center focus:ring-0 font-semibold"
+                  placeholder="1-10"
+                />
+              </td>
+              <td className="p-2 border border-gray-300">
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={overallData[code]?.voice || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 10)) {
+                      handleOverallDataChange(code, "voice", value);
+                    }
+                  }}
+                  className="w-full border-none bg-transparent text-center focus:ring-0 font-semibold"
+                  placeholder="1-10"
+                />
+              </td>
+              <td className="p-2 border border-gray-300">
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={overallData[code]?.regularity || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 10)) {
+                      handleOverallDataChange(code, "regularity", value);
+                    }
+                  }}
+                  className="w-full border-none bg-transparent text-center focus:ring-0 font-semibold"
+                  placeholder="1-10"
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 
-  const teacherOptions = Object.values(subjects).map(s => s.teacher);
+  const teacherOptions = Array.from(new Set(Object.values(subjects).map(s => s.teacher)));
 
   const renderTeacherDropdown = (field, selected) => (
     <select
@@ -356,7 +373,16 @@ const FeedbackForm = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
-
+      {/* Back Button */}
+      <div className="max-w-7xl mx-auto mb-4">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="px-6 py-2 bg-gray-300 text-gray-800 border-none rounded-lg font-semibold cursor-pointer transition-all duration-300 hover:bg-gray-400 hover:translate-y-[-2px] active:translate-y-0"
+        >
+          ← Back to Home
+        </button>
+      </div>
 
       <form className="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6 sm:p-10 border-t-8 border-blue-600">
         <h2 className="text-2xl font-bold text-center mb-6">Feedback Form</h2>
@@ -373,9 +399,16 @@ const FeedbackForm = () => {
               placeholder="Session"
               value={session}
               onChange={(e) => setSession(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  document.getElementById('semester').focus();
+                }
+              }}
               className=" py-1 border rounded ml-2 px-4 font-normal"
               disabled={Object.keys(subjects).length > 0}
               required
+              id="session"
             />
           </label>
           <label htmlFor="semester" className="font-medium">Semester:
@@ -384,9 +417,16 @@ const FeedbackForm = () => {
               placeholder="Semester"
               value={semester}
               onChange={(e) => setSemester(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  document.getElementById('batch').focus();
+                }
+              }}
               className="py-1 border rounded ml-2 px-4 font-normal"
               disabled={Object.keys(subjects).length > 0}
               required
+              id="semester"
             />
           </label>
           <label htmlFor="batch" className="font-medium">Batch:
@@ -395,9 +435,16 @@ const FeedbackForm = () => {
               placeholder="Batch"
               value={batch}
               onChange={(e) => setBatch(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  loadSubjects();
+                }
+              }}
               className="py-1 border rounded ml-2 px-4 font-normal"
               disabled={Object.keys(subjects).length > 0}
               required
+              id="batch"
             /> </label>
         </div>
         {

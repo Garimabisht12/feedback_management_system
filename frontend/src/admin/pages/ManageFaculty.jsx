@@ -21,6 +21,9 @@ const ManageFaculty = () => {
     fetchData()
   }, [])
 
+  // Unique subject names to avoid showing duplicates (same subject across batches)
+  const uniqueSubjectNames = Array.from(new Set(subjects.map(s => s.subjectName)));
+
   const fetchData = async () => {
     try {
       setLoading(true)
@@ -103,7 +106,7 @@ const ManageFaculty = () => {
       department: faculty.department,
       subjectsTaught: faculty.subjectsTaught || []
     })
-    setSelectedSubjects(faculty.subjectsTaught || [])
+    setSelectedSubjects(Array.from(new Set(faculty.subjectsTaught || [])))
     setShowEditForm(true)
     setShowAddForm(false)
   }
@@ -225,18 +228,18 @@ const ManageFaculty = () => {
                   Subjects Taught
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-4 bg-[#fafaf8] rounded-lg border-2 border-[#e8e4dc]">
-                  {subjects.map((subject, index) => (
+                  {uniqueSubjectNames.map((subjectName, index) => (
                     <label
                       key={index}
                       className="flex items-center space-x-2 cursor-pointer hover:bg-white p-2 rounded transition-colors"
                     >
                       <input
                         type="checkbox"
-                        checked={selectedSubjects.includes(subject.subjectName)}
-                        onChange={() => handleSubjectToggle(subject.subjectName)}
+                        checked={selectedSubjects.includes(subjectName)}
+                        onChange={() => handleSubjectToggle(subjectName)}
                         className="w-4 h-4 text-[#d4c5b9] border-[#c4b5a6] rounded focus:ring-[#d4c5b9]"
                       />
-                      <span className="text-sm text-[#4a4238]">{subject.subjectName}</span>
+                      <span className="text-sm text-[#4a4238]">{subjectName}</span>
                     </label>
                   ))}
                 </div>
@@ -297,18 +300,18 @@ const ManageFaculty = () => {
                   Subjects Taught
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-4 bg-[#fafaf8] rounded-lg border-2 border-[#e8e4dc]">
-                  {subjects.map((subject, index) => (
+                  {uniqueSubjectNames.map((subjectName, index) => (
                     <label
                       key={index}
                       className="flex items-center space-x-2 cursor-pointer hover:bg-white p-2 rounded transition-colors"
                     >
                       <input
                         type="checkbox"
-                        checked={selectedSubjects.includes(subject.subjectName)}
-                        onChange={() => handleSubjectToggle(subject.subjectName)}
+                        checked={selectedSubjects.includes(subjectName)}
+                        onChange={() => handleSubjectToggle(subjectName)}
                         className="w-4 h-4 text-[#d4c5b9] border-[#c4b5a6] rounded focus:ring-[#d4c5b9]"
                       />
-                      <span className="text-sm text-[#4a4238]">{subject.subjectName}</span>
+                      <span className="text-sm text-[#4a4238]">{subjectName}</span>
                     </label>
                   ))}
                 </div>
@@ -379,7 +382,7 @@ const ManageFaculty = () => {
                       <td className="px-6 py-4 text-[#5a4f45]">
                         <div className="flex flex-wrap gap-1">
                           {faculty.subjectsTaught?.length > 0 ? (
-                            faculty.subjectsTaught.map((subject, idx) => (
+                            Array.from(new Set(faculty.subjectsTaught)).map((subject, idx) => (
                               <span
                                 key={idx}
                                 className="px-2 py-1 bg-[#f5f5f0] text-[#5a4f45] text-xs rounded-full"

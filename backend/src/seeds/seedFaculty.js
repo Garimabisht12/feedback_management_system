@@ -5,10 +5,20 @@ const Faculty = require('../models/Faculty');
 const MONGO_URI = process.env.MONGO_URI;
 
 const faculties = [
-  { teacherName: 'Ms. Apoorva', department: 'CSE', subjectsTaught: ['CAT017'] },
-  { teacherName: 'Mr. Nitin Chhimwal', department: 'MCA', subjectsTaught: ['AHT411'] },
-  { teacherName: 'Mr. Kaushal Bhatt', department: 'CSE', subjectsTaught: ['CAT027'] },
-  { teacherName: 'Mr. S. Dey', department: 'CSE', subjectsTaught: ['CAT032'] },
+  { teacherName: 'Dr. Shilpi', department: 'CSE', subjectsTaught: ['EMATH'] },
+  { teacherName: 'Mr. Harendra', department: 'CSE', subjectsTaught: ['PHY'] },
+  { teacherName: 'Mr. Indra', department: 'EEE', subjectsTaught: ['BEE'] },
+  { teacherName: 'Dr. Sandesh', department: 'CSE', subjectsTaught: ['PPS'] },
+  { teacherName: 'Mr. Kuber', department: 'CSE', subjectsTaught: ['EG', 'MECH'] },
+  { teacherName: 'Mr. Nitin', department: 'CSE', subjectsTaught: ['IE'] },
+  { teacherName: 'Mr. Himanshu', department: 'ECE', subjectsTaught: ['EVS', 'MECH'] },
+  { teacherName: 'Mr. Rohit', department: 'CSE', subjectsTaught: ['DM'] },
+  { teacherName: 'Dr. Neha', department: 'CSE', subjectsTaught: ['EMATH'] },
+  { teacherName: 'Dr. Devendra', department: 'CSE', subjectsTaught: ['ECHEM'] },
+  { teacherName: 'Mr. Rakesh', department: 'EEE', subjectsTaught: ['BE'] },
+  { teacherName: 'Mr. Abhilash', department: 'CSE', subjectsTaught: ['IOT', 'ET'] },
+  { teacherName: 'Dr. Tanuja', department: 'ECE', subjectsTaught: [] },
+  { teacherName: 'Mr. Peeyush', department: 'ECE', subjectsTaught: [] },
 ];
 
 
