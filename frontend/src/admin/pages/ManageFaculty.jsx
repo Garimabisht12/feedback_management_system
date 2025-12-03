@@ -156,13 +156,13 @@ const ManageFaculty = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f5f0] to-[#e8e4dc] p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(139,123,105,0.15)] p-8 mb-6">
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-[#4a4238] tracking-tight">Manage Faculty</h1>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Manage Faculty</h1>
             <div className="flex gap-3">
               <button
                 onClick={() => {
@@ -172,13 +172,13 @@ const ManageFaculty = () => {
                   setFormData({ teacherName: '', department: '', subjectsTaught: [] })
                   setSelectedSubjects([])
                 }}
-                className="px-6 py-2 bg-gradient-to-br from-[#d4c5b9] to-[#b8a99a] text-white rounded-lg font-medium transition-all duration-300 hover:from-[#c4b5a6] hover:to-[#a89989] hover:shadow-lg"
+                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
               >
                 {showAddForm ? 'Cancel' : 'Add Faculty'}
               </button>
               <button
                 onClick={handleBack}
-                className="px-6 py-2 border-2 border-[#d4c5b9] text-[#4a4238] rounded-lg font-medium transition-all duration-300 hover:bg-[#fafaf8]"
+                className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-medium transition-all duration-300 hover:bg-gray-50"
               >
                 Back
               </button>
@@ -188,8 +188,8 @@ const ManageFaculty = () => {
 
         {/* Add Faculty Form */}
         {showAddForm && (
-          <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(139,123,105,0.15)] p-8 mb-6">
-            <h2 className="text-2xl font-semibold text-[#4a4238] mb-6">Add New Faculty</h2>
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Add New Faculty</h2>
             <form onSubmit={handleAddFaculty}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -224,33 +224,33 @@ const ManageFaculty = () => {
               </div>
 
               <div className="mb-6">
-                <label className="block mb-3 text-[#5a4f45] text-sm font-medium">
+                <label className="block mb-3 text-gray-700 text-sm font-medium">
                   Subjects Taught
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-4 bg-[#fafaf8] rounded-lg border-2 border-[#e8e4dc]">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
                   {uniqueSubjectNames.map((subjectName, index) => (
                     <label
                       key={index}
-                      className="flex items-center space-x-2 cursor-pointer hover:bg-white p-2 rounded transition-colors"
+                      className="flex items-center space-x-2 cursor-pointer hover:bg-blue-50 p-2 rounded transition-colors"
                     >
                       <input
                         type="checkbox"
                         checked={selectedSubjects.includes(subjectName)}
                         onChange={() => handleSubjectToggle(subjectName)}
-                        className="w-4 h-4 text-[#d4c5b9] border-[#c4b5a6] rounded focus:ring-[#d4c5b9]"
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                       />
-                      <span className="text-sm text-[#4a4238]">{subjectName}</span>
+                      <span className="text-sm text-gray-900">{subjectName}</span>
                     </label>
                   ))}
                 </div>
-                <p className="text-xs text-[#8b7b69] mt-2">
+                <p className="text-xs text-gray-600 mt-2">
                   Selected: {selectedSubjects.length} subjects
                 </p>
               </div>
 
               <button
                 type="submit"
-                className="w-full px-6 py-3 bg-gradient-to-br from-[#d4c5b9] to-[#b8a99a] text-white rounded-lg font-semibold transition-all duration-300 hover:from-[#c4b5a6] hover:to-[#a89989] hover:shadow-lg uppercase tracking-wider"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg uppercase tracking-wider"
               >
                 Add Faculty
               </button>
@@ -260,8 +260,8 @@ const ManageFaculty = () => {
 
         {/* Edit Faculty Form */}
         {showEditForm && editingFaculty && (
-          <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(139,123,105,0.15)] p-8 mb-6">
-            <h2 className="text-2xl font-semibold text-[#4a4238] mb-6">Edit Faculty</h2>
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Edit Faculty</h2>
             <form onSubmit={handleUpdateFaculty}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -323,7 +323,7 @@ const ManageFaculty = () => {
               <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-gradient-to-br from-[#d4c5b9] to-[#b8a99a] text-white rounded-lg font-semibold transition-all duration-300 hover:from-[#c4b5a6] hover:to-[#a89989] hover:shadow-lg uppercase tracking-wider"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg uppercase tracking-wider"
                 >
                   Update Faculty
                 </button>
@@ -340,58 +340,58 @@ const ManageFaculty = () => {
         )}
 
         {/* Faculty List */}
-        <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(139,123,105,0.15)] overflow-hidden">
-          <div className="p-6 bg-gradient-to-r from-[#d4c5b9] to-[#b8a99a]">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
             <h2 className="text-xl font-semibold text-white">Faculty List</h2>
           </div>
 
           {loading ? (
             <div className="p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#d4c5b9] border-t-transparent"></div>
-              <p className="mt-4 text-[#8b7b69]">Loading faculties...</p>
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+              <p className="mt-4 text-gray-600">Loading faculties...</p>
             </div>
           ) : faculties.length === 0 ? (
             <div className="p-12 text-center">
-              <svg className="mx-auto h-16 w-16 text-[#d4c5b9] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <p className="text-[#8b7b69] text-lg">No faculty members found</p>
-              <p className="text-[#b8a99a] text-sm mt-2">Click "Add Faculty" to add new members</p>
+              <p className="text-gray-600 text-lg">No faculty members found</p>
+              <p className="text-gray-400 text-sm mt-2">Click "Add Faculty" to add new members</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-[#fafaf8] border-b-2 border-[#e8e4dc]">
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4a4238] uppercase tracking-wider">S.No</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4a4238] uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4a4238] uppercase tracking-wider">Department</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-[#4a4238] uppercase tracking-wider">Subjects</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-[#4a4238] uppercase tracking-wider">Actions</th>
+                  <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">S.No</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Department</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Subjects</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e8e4dc]">
+                <tbody className="divide-y divide-gray-200">
                   {faculties.map((faculty, index) => (
                     <tr
                       key={faculty._id}
-                      className="hover:bg-[#fafaf8] transition-colors duration-200"
+                      className="hover:bg-blue-50 transition-colors duration-200"
                     >
-                      <td className="px-6 py-4 text-[#4a4238] font-medium">{index + 1}</td>
-                      <td className="px-6 py-4 text-[#4a4238] font-medium">{faculty.teacherName}</td>
-                      <td className="px-6 py-4 text-[#5a4f45]">{faculty.department}</td>
-                      <td className="px-6 py-4 text-[#5a4f45]">
+                      <td className="px-6 py-4 text-gray-900 font-medium">{index + 1}</td>
+                      <td className="px-6 py-4 text-gray-900 font-medium">{faculty.teacherName}</td>
+                      <td className="px-6 py-4 text-gray-700">{faculty.department}</td>
+                      <td className="px-6 py-4 text-gray-700">
                         <div className="flex flex-wrap gap-1">
                           {faculty.subjectsTaught?.length > 0 ? (
                             Array.from(new Set(faculty.subjectsTaught)).map((subject, idx) => (
                               <span
                                 key={idx}
-                                className="px-2 py-1 bg-[#f5f5f0] text-[#5a4f45] text-xs rounded-full"
+                                className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
                               >
                                 {subject}
                               </span>
                             ))
                           ) : (
-                            <span className="text-[#b8a99a] text-sm">No subjects</span>
+                            <span className="text-gray-400 text-sm">No subjects</span>
                           )}
                         </div>
                       </td>
@@ -399,13 +399,13 @@ const ManageFaculty = () => {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => handleEditClick(faculty)}
-                            className="px-4 py-2 bg-gradient-to-br from-[#a8c5d9] to-[#7a99ba] text-white rounded-lg font-medium transition-all duration-300 hover:from-[#98b5c9] hover:to-[#6a89aa] hover:shadow-lg"
+                            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDeleteFaculty(faculty._id, faculty.teacherName)}
-                            className="px-4 py-2 bg-gradient-to-br from-[#f5d5d5] to-[#f5b5b5] text-[#991b1b] rounded-lg font-medium transition-all duration-300 hover:from-[#f5b5b5] hover:to-[#f59595] hover:shadow-lg"
+                            className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-medium transition-all duration-300 hover:from-red-600 hover:to-red-700 hover:shadow-lg"
                           >
                             Delete
                           </button>
