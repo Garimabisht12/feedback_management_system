@@ -14,7 +14,7 @@ const adminRoutes = require('./src/routes/adminRoutes');
 
 const app = express()
 app.use(cors({
-    origin: [''],
+    origin: ['*'],
     credentials: true
 }))
 
