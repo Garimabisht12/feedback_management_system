@@ -22,7 +22,9 @@ app.use(express.json())
 
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
-
+app.get('/', ()=>{
+    resizeBy.send('Backend Working Mate!')
+})
 app.use('/api', loginRoutes);
 app.use('/api', subjectRoutes);
 app.use('/api', feedbackRoutes);
