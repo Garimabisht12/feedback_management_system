@@ -14,7 +14,7 @@ const adminRoutes = require('./src/routes/adminRoutes');
 
 const app = express()
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    origin: ['https://bias-feedback-management.netlify.app/', 'http://localhost:5173', 'http://localhost:5174'],
     credentials: true
 }))
 
