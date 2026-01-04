@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-    baseURL: "http://localhost:5000/api",
+    baseURL: "https://bias-feedbackmanagementsystem-production-64b2.up.railway.app/api/"
 });
 
 export default instance;
