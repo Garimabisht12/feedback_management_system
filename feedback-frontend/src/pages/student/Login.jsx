@@ -16,14 +16,14 @@ export function StudentLogin () {
       const response = await axios.post('/login', {
         rollNo
       })
-    if (!response.data.student.hasSubmittedFeedback) { 
+    if (!(response.data.student.hasSubmittedFeedback)) { 
       navigate('/feedbackForm', { state: rollNo })
+      
     }
 else{
   navigate('/responded')
 }    } catch (e) {
-      console.log(e)
-      alert(e)
+      alert('Login failed. Please check your roll number and try again.')
     }
   }
   return (

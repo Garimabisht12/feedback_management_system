@@ -72,14 +72,19 @@ export function FeedbackForm () {
   }
 
   const calculateAverageRating = (subjectId) => {
-    const subjectRatings = ratings[subjectId] || []
-    const firstNineRatings = subjectRatings.slice(0, 9)
-    const validRatings = firstNineRatings.filter(r => r !== '' && r !== null && r !== undefined)
-    if (validRatings.length === 0) return 0
-    const sum = validRatings.reduce((acc, val) => acc + (parseInt(val) || 0), 0)
-    return (sum / 9).toFixed(2)
-  }
+  const subjectRatings = ratings[subjectId] || []
 
+  const validRatings = subjectRatings
+    .slice(0, 9)
+    .filter(r => r !== '' && r != null)
+    .map(Number)
+
+  if (validRatings.length === 0) return 0
+
+  const sum = validRatings.reduce((a, b) => a + b, 0)
+
+  return (sum / validRatings.length).toFixed(2)
+}
   const getAvgColor = (avg) => {
     const val = parseFloat(avg)
     if (val >= 4) return 'text-emerald-600 bg-emerald-50 border-emerald-200'
