@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
-const StudentSchema = mongoose.schema({
-  roll_no:{
+const StudentSchema = mongoose.Schema({
+  rollNo:{
     type: Number,
     required: true,
     unique: true,
@@ -16,7 +16,7 @@ const StudentSchema = mongoose.schema({
     },
     course: {
       type: String,
-      require: true,
+      required: true,
     },
     branch: {
       type: String,
@@ -29,11 +29,10 @@ const StudentSchema = mongoose.schema({
   batch: {
         type: Number,
         required: true,
-    },
-
-  createdAt: Date
-
-});
+    }
 
 
-module.exports = mongoose.model('Student', StudentSchema)
+}, { timestamps: true });
+
+
+module.exports = mongoose.model('Student', StudentSchema);

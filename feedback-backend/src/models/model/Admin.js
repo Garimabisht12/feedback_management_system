@@ -4,13 +4,14 @@ const AdminSchema =  mongoose.Schema({
    email:{
         type: String,
         required: true,
+        unique: true
     },
     password:{
         type: String,
         required: true,
-    },
-  createdAt: Date,
-})
+    }
+
+}, { timestamps: true })
 
 
-module.exports = mongoose.model('Admin', AdminSchema)
+module.exports = mongoose.model('Admin', AdminSchema);

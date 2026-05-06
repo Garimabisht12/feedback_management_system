@@ -5,6 +5,9 @@ const cors = require('cors');
 require('dotenv').config();
 
 // const subjectRoutes = require('./src/routes/studentRoutes');
+
+
+const loginRoutes = require('./src/routes/modifiedRoutes/loginRoutes')
 const feedbackRoutes = require('./src/routes/feedbackRoutes');
 const studentRoutes = require('./src/routes/studentRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
@@ -24,6 +27,7 @@ app.get('/', (req, res)=>{
     res.send('Backend Working!')
 })
 
+app.use('/test/login', loginRoutes)
 app.use('/api', studentRoutes);
 app.use('/api', feedbackRoutes);
 app.use('/api/admin', adminRoutes);
