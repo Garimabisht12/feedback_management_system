@@ -25,8 +25,7 @@ const FeedbackFormSchema =  mongoose.Schema({
     type: String,
     required: true,
   },
-  createdAt: Date,
-})
+}, { timestamps: true })
 
 
 module.exports = mongoose.model('FeedbackForm', FeedbackFormSchema)

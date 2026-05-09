@@ -8,6 +8,9 @@ require('dotenv').config();
 
 
 const loginRoutes = require('./src/routes/modifiedRoutes/loginRoutes')
+const teacherRoutes = require('./src/routes/modifiedRoutes/teacherRoutes')
+
+
 const feedbackRoutes = require('./src/routes/feedbackRoutes');
 const studentRoutes = require('./src/routes/studentRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
@@ -28,6 +31,8 @@ app.get('/', (req, res)=>{
 })
 
 app.use('/test/login', loginRoutes)
+app.use('/test/admin/teacher', teacherRoutes)
+
 app.use('/api', studentRoutes);
 app.use('/api', feedbackRoutes);
 app.use('/api/admin', adminRoutes);

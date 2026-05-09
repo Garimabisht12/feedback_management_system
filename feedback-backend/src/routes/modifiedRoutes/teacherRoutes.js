@@ -1,0 +1,20 @@
+const express = require('express')
+
+const {
+  getAllTeachers,
+  createTeacher,
+  getTeacherById,
+  updateTeacher,
+  deleteTeacher
+} = require('../../controllers/modifiedControllers/teacherController')
+
+const router = express.Router();
+
+router.get('/', authMiddleware, getAllTeachers)
+router.get('/:id', authMiddleware, getTeacherById)
+router.post('/', authMiddleware, createTeacher )
+router.put('/:id', authMiddleware, updateTeacher)
+router.delete('/:id', authMiddleware, deleteTeacher)
+
+
+module.exports = router;

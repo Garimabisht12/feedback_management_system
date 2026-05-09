@@ -9,8 +9,8 @@ const TeacherSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-  createdAt: Date,
-});
+
+}, { timestamps: true });
 
 
 module.exports = mongoose.model('Teacher', TeacherSchema)

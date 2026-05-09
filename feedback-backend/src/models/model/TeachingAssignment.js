@@ -17,8 +17,8 @@ const TeachingAssignmentSchema = mongoose.Schema({
         type: Number,
         required: true,
     },
-  createdAt: Date,
-})
+
+}, { timestamps: true })
 
 
 module.exports = mongoose.model('TeachingAssignment', TeachingAssignmentSchema)
