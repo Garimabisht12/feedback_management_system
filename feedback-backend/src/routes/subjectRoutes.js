@@ -6,7 +6,7 @@ const {
   createSubject,
   updateSubject,
   deleteSubject
-  } = require('../../controllers/modifiedControllers/subjectController')
+  } = require('../controllers/subjectController')
 
 router.get('/', getAllSubjects);
 

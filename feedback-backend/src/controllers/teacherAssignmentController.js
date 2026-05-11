@@ -1,5 +1,5 @@
-const TeachingAssignment = require("../../models/model/TeachingAssignment");
-const { getAssignmentsByAcademicData } = require("../../services/assignmentService");
+const TeachingAssignment = require("../models/TeachingAssignment");
+const { getAssignmentsByAcademicData } = require("../services/assignmentService");
 
 
 

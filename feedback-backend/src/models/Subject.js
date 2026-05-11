@@ -1,17 +1,20 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
-const SubjectSchema = new mongoose.Schema({
-  session: { type: String, required: true },
-  semester: { type: Number, required: true },
-  batch: { type: Number },
-  subjectCode: { type: String, required: true },
-  subjectName: { type: String, required: true },
-  teacherName: { type: String, required: true }
-});
+const SubjectSchema = mongoose.Schema({
+  name: {
+        type: String,
+        required: true,
+    },
+    
+  semester: {
+        type: Number,
+        required: true,
+    },
+  subjectCode: {
+        type: String,
+        required: true,
+    },
+ 
+}, { timestamps: true });
 
-SubjectSchema.index(
-  { session: 1, semester: 1, batch: 1, subjectCode: 1 },
-  { unique: true }
-);
-
-module.exports = mongoose.model('Subject1', SubjectSchema);
+module.exports = mongoose.model('Subject', SubjectSchema)

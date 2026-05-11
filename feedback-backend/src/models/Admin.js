@@ -1,14 +1,17 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
-const AdminSchema = mongoose.Schema({
-    email:{
+const AdminSchema =  mongoose.Schema({
+   email:{
         type: String,
         required: true,
+        unique: true
     },
     password:{
         type: String,
         required: true,
     }
-})
 
-module.exports = mongoose.model('Admin1', AdminSchema)
+}, { timestamps: true })
+
+
+module.exports = mongoose.model('Admin', AdminSchema);

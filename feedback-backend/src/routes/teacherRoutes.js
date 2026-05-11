@@ -1,12 +1,12 @@
 const express = require('express')
-const authMiddleware = require('../../middleware/authMiddleware')
+const authMiddleware = require('../middleware/authMiddleware')
 const {
   getAllTeachers,
   createTeacher,
   getTeacherById,
   updateTeacher,
   deleteTeacher
-} = require('../../controllers/modifiedControllers/teacherController')
+} = require('../controllers/teacherController')
 
 const router = express.Router();
 

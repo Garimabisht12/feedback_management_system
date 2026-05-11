@@ -1,4 +1,4 @@
-const TeachingAssignment = require("../models/model/TeachingAssignment");
+const TeachingAssignment = require("../models/TeachingAssignment");
 
 const getAssignmentsByAcademicData = async ({
   semester,

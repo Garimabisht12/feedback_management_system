@@ -1,34 +1,38 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
-const StudentSchema = new mongoose.Schema({
-    rollNo: {
+const StudentSchema = mongoose.Schema({
+  rollNo:{
+    type: Number,
+    required: true,
+    unique: true,
+  },
+  name: {
+        type: String,
+        required: true,
+    },
+  password: {
+        type: String,
+        required: true,
+    },
+    course: {
+      type: String,
+      required: true,
+    },
+    branch: {
+      type: String,
+      required : true,
+    },
+  semester: {
         type: Number,
         required: true,
-        unique: true,
     },
-    studentName: {
-        type: String,
+  batch: {
+        type: Number,
         required: true,
-    }, 
-    course:{
-        type: String,
-        required: true,
-    }, 
-    branch:{
-        type: String,
-        required: true,
-    },
-    
-    hasSubmittedFeedback: {
-        type: Boolean,
-        default: false,
-    },
-    
-
-})
-
-module.exports = mongoose.model('Student1', StudentSchema);
+    }
 
 
+}, { timestamps: true });
 
 
+module.exports = mongoose.model('Student', StudentSchema);

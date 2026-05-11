@@ -1,12 +1,17 @@
-// routes/feedbackRoutes.js
-const express = require('express');
+const express = require('express')
 const router = express.Router();
-const { submitFeedback, checkFeedbackStatus, getFeedbackAnalytics, getTeacherAnalytics } = require('../controllers/feedbackController');
 
-router.post('/feedback', submitFeedback);
-router.get("/feedback-status/:rollNumber", checkFeedbackStatus);
-router.get("/feedback/analytics", getFeedbackAnalytics);
-router.get("/feedback/teacher/:teacherName", getTeacherAnalytics);
+const authMiddleWare = require('../middleware/authMiddleware')
+
+const {getAllFeedback, getFeedbackById, getTeacherAnalytics, getSubjectAnalytics} = require('../controllers/adminFeedbackController')
+
+
+router.get('/', authMiddleWare, getAllFeedback)
+router.get('/:id', authMiddleWare, getFeedbackById)
+router.get('/teacher/:teacherName', authMiddleWare, getTeacherAnalytics)
+router.get('/subject/:subjectCode', authMiddleWare, getSubjectAnalytics)
+
+
 
 
 module.exports = router;

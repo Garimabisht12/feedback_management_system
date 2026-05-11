@@ -1,4 +1,4 @@
-const Subject = require('../../models/model/Subject')
+const Subject = require('../models/Subject')
 
 
 

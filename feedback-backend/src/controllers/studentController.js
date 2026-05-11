@@ -1,56 +1,42 @@
-const Student = require('../models/Student');
-const Subject = require('../models/Subject');
+const { getDataByBatch } = require('../controllers/teacherAssignmentController');
+const { getAssignmentsByAcademicData } = require('../services/assignmentService');
 
-exports.getStudentByRoll = async (req, res) => {
+exports.fetchSubjects = async (req, res) => {
+  const student = req.student;
+  if (!student) return res.status(400).json({
+    success: false,
+    message: "student data required!"
+  })
   try {
-    const  {rollNo}  = req.params;
-    
-    if (!rollNo) {
-      return res.status(400).json({ message: "rollNo is required" });
-    }
 
-    const student = await Student.findOne({ rollNo: Number(rollNo) });
-    if (!student) {
-      return res.status(404).json({ message: `No student found with rollNo ${rollNo}` });
-    }
+    console.log(student)
+    const subjects = await getAssignmentsByAcademicData({
+      semester: student.semester,
+      batch: student.batch,
+      course: student.course,
+      branch: student.branch
+    })
 
-    res.status(200).json({ message: "Student found", student });
-
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-};
-
-// controllers/subjectController.js
-
-exports.getSubjects = async (req, res) => {
-  try {
-    const session = req.params.session;
-    const semester = req.params.semester;
-    const batch = req.params.batch;
-    console.log(session, semester, batch)
-    if (!session || !semester || !batch) {
-      return res.status(400).json({
-        message: "session, semester and batch are required"
+    if (subjects.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No assignments found"
       });
     }
 
-    const subjects = await Subject.find({
-      session:session.trim(),
-      semester: Number(semester),
-      batch: Number(batch)
-    });
-    if (!subjects.length) {
-      return res.status(404).json({ message: 'No subjects found for this selection' });
-    }
-
     return res.status(200).json({
-      message: 'Subjects fetched successfully',
-      subjects
+      success: true,
+      count: subjects.length,
+      data: subjects
     });
 
   } catch (err) {
-    console.error("Subjects fetch error:", err);
-    return res.status(500).json({ message: "Server error", error: err.message });
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message
+    });
+
   }
-};
+}

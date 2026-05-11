@@ -1,4 +1,4 @@
-const Teacher = require('../../models/model/Teacher')
+const Teacher = require('../models/Teacher')
 
 exports.createTeacher = async (req, res) => {
   const { name, department } = req.body;
