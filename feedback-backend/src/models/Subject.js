@@ -14,4 +14,4 @@ SubjectSchema.index(
   { unique: true }
 );
 
-module.exports = mongoose.model('Subject', SubjectSchema);
+module.exports = mongoose.model('Subject1', SubjectSchema);

@@ -3,9 +3,9 @@ const TeachingAssignment = require("../../models/model/TeachingAssignment");
 
 
 exports.createAssignment = async(req, res) => {
-  const {semester, batch, subjectId, teacherId} = req.body;
+  const {semester, batch, subjectId, teacherId, course} = req.body;
 
-  if(!semester || !batch || !subjectId || !teacherId) return res.status(400).json({success: false, message: 'All fields required.'});
+  if(!semester || !batch || !subjectId || !teacherId || !course) return res.status(400).json({success: false, message: 'All fields required.'});
 
   try {
 
@@ -13,7 +13,8 @@ exports.createAssignment = async(req, res) => {
       semester,
       batch,
       subjectId,
-      teacherId
+      teacherId,
+      course
     });
 
      if (existingAssignment) {
@@ -27,7 +28,8 @@ exports.createAssignment = async(req, res) => {
       semester, 
       batch,
       subjectId,
-      teacherId
+      teacherId,
+      course
     })
     return res.status(201).json({
       success: true,
@@ -43,8 +45,6 @@ exports.createAssignment = async(req, res) => {
   }
 
 }
-
-
 
 exports.getAllAssignments = async(req, res) => {
   try{
@@ -65,33 +65,182 @@ exports.getAllAssignments = async(req, res) => {
   }
 }
 
+// get all the sujects taught by a teacher "A"
+exports.getAssignedSubjectByTeacherId = async(req, res) => {
+ 
+  try{
+    const { teacherId } = req.params;
 
-
-
-
-
-const getAssignedSubject = async(req, res) => {
-  const {teacherId} = req.body;
-  try {
-    const assignments = TeachingAssignment.find({teacherId})
-    const subjects = []
-    assignments.map((assigned) => {
-      const subject = Subject.findById(assigned.subjectId)
-    // logic put here///// needs updation and correct logic
+    if (!teacherId) {
+      return res.status(400).json({
+        success: false,
+        message: "TeacherId required"
+      });
+    }
+     const assignedSubjects = await TeachingAssignment.find({
+      teacherId
+    }).populate("subjectId").populate("teacherId");
+     if (assignedSubjects.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No subjects assigned to this teacher"
+      });
+    }
     
-      subjects.push([subject, assigned.teacher, assigned.semester, assigned.batch])
-    })
-
     return res.status(200).json({
-      data: subjects
-    })
-  } catch (error) {
-    
+      success: true,
+      message: "Assigned subjects found",
+      data: assignedSubjects
+    });
+  }
+  catch(err){
+     return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
   }
 }
 
+// delete wrong assignment
+exports.deleteAssignment = async (req, res) => {
+  
+  try {
+    
+    const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Assignment id required"
+      });
+    }
+
+    const deletedData = await TeachingAssignment.findByIdAndDelete(id);
+    
+    if (!deletedData) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Assignment deleted successfully",
+      data: deletedData
+    });
+    
+  } catch (err) {
+    
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message
+    });
+    
+  }
+};
+
+exports.updateAssignment = async (req, res) => {
+  
+  try {
+    
+    const { id } = req.params;
+    
+    const {
+      subjectId,
+      teacherId,
+      semester,
+      batch,
+      course
+    } = req.body;
+    
+    const assignment = await TeachingAssignment.findById(id);
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found"
+      });
+    }
+    
+    if (subjectId) assignment.subjectId = subjectId;
+    if (teacherId) assignment.teacherId = teacherId;
+    if (semester) assignment.semester = semester;
+    if (batch) assignment.batch = batch;
+    if (course) assignment.course = course;
+    
+    await assignment.save();
+    
+    return res.status(200).json({
+      success: true,
+      message: "Assignment updated successfully",
+      data: assignment
+    });
+
+  } catch (err) {
+    
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message
+    });
+
+  }
+};
+
+
+// get all teachers + subjects for a specific batch
+exports.getDataByBatch = async (req, res) => {
+
+  const { batch, semester, course } = req.body;
+
+  if (!batch || !semester || !course) {
+    return res.status(400).json({
+      success: false,
+      message: "Batch, semester and course are required"
+    });
+  }
+
+  try {
+
+    const subjects = await TeachingAssignment.find({
+      semester,
+      batch,
+      course
+    })
+      .populate("subjectId")
+      .populate("teacherId");
+
+    if (subjects.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No assignments found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      count: subjects.length,
+      data: subjects
+    });
+
+  } catch (err) {
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message
+    });
+
+  }
+};
+
+
+
 // // get assignments by teacher 
-// TeachingAssignment.find({ teacherId })
+// const assignedSubjects = TeachingAssignment.find({ teacherId })
 
 
 // // delete assignment 

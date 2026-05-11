@@ -17,7 +17,10 @@ const TeachingAssignmentSchema = mongoose.Schema({
         type: Number,
         required: true,
     },
-
+    course: {
+      type: String,
+      required: true
+    },
 }, { timestamps: true })
 
 

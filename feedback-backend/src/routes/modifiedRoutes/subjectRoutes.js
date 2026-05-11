@@ -8,7 +8,7 @@ const {
   deleteSubject
   } = require('../../controllers/modifiedControllers/subjectController')
 
-// router.get('/', getAllSubjects);
+router.get('/', getAllSubjects);
 
 router.post('/', createSubject);
 

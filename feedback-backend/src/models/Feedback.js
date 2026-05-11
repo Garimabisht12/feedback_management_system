@@ -26,4 +26,4 @@ const feedbackSchema = new mongoose.Schema({
   submittedAt: Date
 });
 
-module.exports = mongoose.model('Feedback', feedbackSchema);
+module.exports = mongoose.model('Feedback1', feedbackSchema);

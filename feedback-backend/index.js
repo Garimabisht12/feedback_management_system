@@ -9,7 +9,8 @@ require('dotenv').config();
 
 const loginRoutes = require('./src/routes/modifiedRoutes/loginRoutes')
 const teacherRoutes = require('./src/routes/modifiedRoutes/teacherRoutes')
-
+const subjectRoutes = require('./src/routes/modifiedRoutes/subjectRoutes')
+const assignmentRoutes = require('./src/routes/modifiedRoutes/assignmentRoutes')
 
 const feedbackRoutes = require('./src/routes/feedbackRoutes');
 const studentRoutes = require('./src/routes/studentRoutes');
@@ -32,6 +33,8 @@ app.get('/', (req, res)=>{
 
 app.use('/test/login', loginRoutes)
 app.use('/test/admin/teacher', teacherRoutes)
+app.use('/test/admin/subject', subjectRoutes)
+app.use('/test/admin/assignment', assignmentRoutes)
 
 app.use('/api', studentRoutes);
 app.use('/api', feedbackRoutes);
