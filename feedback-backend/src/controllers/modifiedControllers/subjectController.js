@@ -5,7 +5,7 @@ const Subject = require('../../models/model/Subject')
 exports.createSubject = async (req, res) => {
   const { name, semester, subjectCode } = req.body;
   if (!name || !semester || !subjectCode) return res.status(400).json({ message: 'All fields are required!' });
-
+  
   try {
 
     const existingSubject = await Subject.findOne({

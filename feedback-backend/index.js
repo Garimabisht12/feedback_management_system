@@ -11,9 +11,11 @@ const loginRoutes = require('./src/routes/modifiedRoutes/loginRoutes')
 const teacherRoutes = require('./src/routes/modifiedRoutes/teacherRoutes')
 const subjectRoutes = require('./src/routes/modifiedRoutes/subjectRoutes')
 const assignmentRoutes = require('./src/routes/modifiedRoutes/assignmentRoutes')
+const studentRoutes = require('./src/routes/modifiedRoutes/studentRoutes')
+
 
 const feedbackRoutes = require('./src/routes/feedbackRoutes');
-const studentRoutes = require('./src/routes/studentRoutes');
+// const studentRoutes = require('./src/routes/studentRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 
 const app = express()
@@ -25,16 +27,16 @@ app.use(cors({
 app.use(express.json())
 
 const cookieParser = require("cookie-parser");
-const { getSubjects } = require('./src/controllers/studentController');
 app.use(cookieParser());
 app.get('/', (req, res)=>{
     res.send('Backend Working!')
 })
 
-app.use('/test/login', loginRoutes)
+app.use('/test', loginRoutes)
 app.use('/test/admin/teacher', teacherRoutes)
 app.use('/test/admin/subject', subjectRoutes)
 app.use('/test/admin/assignment', assignmentRoutes)
+app.use('/test/student', studentRoutes)
 
 app.use('/api', studentRoutes);
 app.use('/api', feedbackRoutes);

@@ -43,22 +43,165 @@ exports.loginAdmin = async(req, res) => {
   }
 }
 
-// loginStudent
 
-exports.loginStudent = async(req, res) => {
-  try{
-    const {rollNo, password} = req.body;
-    if(!password || !rollNo){
-      return res.status(400).json({message: "All fields are required!"}); 
+
+// register student
+
+
+
+// REGISTER STUDENT
+
+exports.registerStudent = async (req, res) => {
+
+  try {
+
+    const {
+      name,
+      email,
+      rollNo,
+      password,
+      semester,
+      batch,
+      branch,
+      course
+    } = req.body;
+
+    if (
+      !name ||
+      !email ||
+      !rollNo ||
+      !password ||
+      !semester ||
+      !batch ||
+      !branch ||
+      !course
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields required"
+      });
     }
 
-    const student = await Student.findOne({rollNo});
-    if(!student) return res.status(404).json({message: 'Roll no. not found. Contact HOD.'})
-    const isMatch = bcrypt.compare(password, student.password)
-    if(!isMatch) return res.status(400).json({message: 'Invalid Credentials.'})
-    res.status(200).json({message: "Successfully logged in.", student});
+    const existingStudent =
+      await Student.findOne({ rollNo });
+
+    if (existingStudent) {
+      return res.status(400).json({
+        success: false,
+        message: "Student already exists"
+      });
+    }
+
+    const hashedPassword =
+      await bcrypt.hash(password, 10);
+
+    const student = await Student.create({
+      name,
+      email,
+      rollNo,
+      password: hashedPassword,
+      semester,
+      batch,
+      branch,
+      course
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Student registered successfully",
+      data: student
+    });
+
+  } catch (err) {
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message
+    });
+
   }
-  catch(err){
-    res.status(500).json({message: "Error in logging in, please try again later."})
+
+};
+
+
+// LOGIN STUDENT
+
+exports.loginStudent = async (req, res) => {
+
+  try {
+
+    const { rollNo, password } = req.body;
+
+    if (!rollNo || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required"
+      });
+    }
+
+    const student =
+      await Student.findOne({ rollNo });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
+    }
+
+    const isMatch =
+      await bcrypt.compare(
+        password,
+        student.password
+      );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid credentials"
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: student._id,
+        semester: student.semester,
+        batch: student.batch,
+        branch: student.branch,
+        course: student.course
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d"
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      student: {
+        id: student._id,
+        name: student.name,
+        email: student.email,
+        rollNo: student.rollNo,
+        semester: student.semester,
+        batch: student.batch,
+        branch: student.branch,
+        course: student.course
+      }
+    });
+
+  } catch (err) {
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message
+    });
+
   }
-}
+
+};
+
