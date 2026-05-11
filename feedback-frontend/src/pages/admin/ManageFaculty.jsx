@@ -28,12 +28,12 @@ const ManageFaculty = () => {
     try {
       setLoading(true)
       const [facultyRes, subjectRes] = await Promise.all([
-        axios.get('/admin/teachers'),
-        axios.get('/subjects/all')
+        axios.get('/admin/teacher'),
+        axios.get('/admin/subject')
       ])
       setFaculties(facultyRes.data.faculty || [])
       console.log('facultyRes:', facultyRes)
-      setSubjects(subjectRes.data || [])
+      setSubjects(subjectRes.data.data || [])
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally{
@@ -67,7 +67,7 @@ const ManageFaculty = () => {
         subjectsTaught: selectedSubjects
       }
 
-      await axios.post('/admin/teachers', facultyData)
+      await axios.post('/admin/teacher', facultyData)
 
       // Reset form
       setFormData({
@@ -90,7 +90,7 @@ const ManageFaculty = () => {
   const handleDeleteFaculty = async (facultyId, teacherName) => {
     if (window.confirm(`Are you sure you want to delete ${teacherName}?`)) {
       try {
-        await axios.delete(`/admin/teachers/${facultyId}`)
+        await axios.delete(`/admin/teacher/${facultyId}`)
         fetchData()
         alert('Faculty deleted successfully!')
       } catch (error) {
@@ -120,7 +120,7 @@ const ManageFaculty = () => {
         subjectsTaught: selectedSubjects
       }
 
-      await axios.put(`/admin/teachers/${editingFaculty._id}`, facultyData)
+      await axios.put(`/admin/teacher/${editingFaculty._id}`, facultyData)
 
       // Reset form
       setFormData({

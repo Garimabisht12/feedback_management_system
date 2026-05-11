@@ -32,14 +32,25 @@ const ViewFeedback = () => {
     try {
       setLoading(true)
       // Fetch global analytics
-      const globalRes = await axios.get('/feedback/analytics')
-      setGlobalAnalytics(globalRes.data)
+      const globalRes = await axios.get('/admin/feedback')
+      setGlobalAnalytics({
+        totalFeedbacks: globalRes.data.count || 0
+      })
       console.log('Global Analytics:', globalRes.data)
 
-      // Fetch teachers analytics
-      const teachersRes = await axios.get('/admin/teachers/analytics')
-      console.log('Teachers Analytics:', teachersRes.data.data)
-      setTeachersAnalytics(teachersRes.data.data || [])
+      // Fetch teacher list
+      const teachersRes = await axios.get('/admin/teacher')
+      const teachers = teachersRes.data.faculty || []
+      const teacherAnalytics = teachers.map(teacher => ({
+        teacherName: teacher.name,
+        department: teacher.department,
+        averageRating: 0,
+        totalFeedbacks: 0,
+        bestTeacherVotes: 0,
+        subjectBreakdown: []
+      }))
+      console.log('Teachers Analytics:', teacherAnalytics)
+      setTeachersAnalytics(teacherAnalytics)
     } catch (error) {
       console.error('Error fetching analytics:', error)
     } finally{

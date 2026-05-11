@@ -1,5 +1,5 @@
 import axios from '../../api/axios'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 import {feedbackParameters as feedbackParams} from '../../utilities/feedback-parameters' 
@@ -8,11 +8,13 @@ export function FeedbackForm () {
   const [session, setSession] = useState('')
   const [semester, setSemester] = useState('')
   const [batch, setBatch] = useState('')
-  const [studentData, setStudentData] = useState({})
+  const location = useLocation()
+  const studentInfo = location.state || {}
+  const [studentData, setStudentData] = useState(studentInfo)
   const [subjects, setSubjects] = useState([])
   const [loading, setLoading] = useState(false)
   const [loadingSubjects, setLoadingSubjects] = useState(false)
-  const rollNo = useLocation().state
+  const rollNo = studentInfo.rollNo || ''
   const navigate = useNavigate()
   const [ratings, setRatings] = useState({})
   const [overallData, setOverallData] = useState({})
@@ -20,21 +22,6 @@ export function FeedbackForm () {
   const [bestTeachers, setBestTeachers] = useState(['', '', ''])
   const [suggestions, setSuggestions] = useState('')
   const [disableSubmit, setDisableSubmit] = useState(false)
-  useEffect(() => {
-    const fetchStudentData = async () => {
-      try {
-        setLoading(true)
-        const res = await axios.get(`/student/${rollNo}`)
-        setStudentData(res.data.student)
-      } catch (e) {
-        alert('Error fetching student data: ' + (e.response?.data || e.message))
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchStudentData()
-  }, [])
-
   const handleBack = () => {
     navigate('/')
   }
@@ -43,15 +30,15 @@ export function FeedbackForm () {
     e.preventDefault()
     try {
       setLoadingSubjects(true)
-      const response = await axios.get(`/subjects/${session}/${semester}/${batch}`)
-      if (response.data.subjects.length === 0) {
+      const response = await axios.get('/student/subjects')
+      if (response.data.data.length === 0) {
         alert('No subjects found for the selected session, semester, and batch.')
         return
       }
-      setSubjects(response.data.subjects)
+      setSubjects(response.data.data)
       const initRatings = {}
       const initOverallData = {}
-      response.data.subjects.forEach(subject => {
+      response.data.data.forEach(subject => {
         initRatings[subject.subjectCode] = Array(9).fill('')
         initOverallData[subject.subjectCode] = { syllabus: '', voice: '', regularity: '' }
       })
@@ -182,7 +169,7 @@ export function FeedbackForm () {
     }
     try {
       setLoading(true)
-      const response = await axios.post('/feedback', {
+      const response = await axios.post('/student/feedback/submit', {
         studentRoll: rollNo,
         session,
         semester: Number(semester),

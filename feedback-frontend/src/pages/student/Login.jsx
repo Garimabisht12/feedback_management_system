@@ -5,6 +5,7 @@ import Logo from '../../assets/cllg.jpeg'
 import axios from '../../api/axios'
 export function StudentLogin () {
   const [rollNo, setRollNo] = useState('')
+  const [password, setPassword] = useState('')
   const navigate = useNavigate()
   const handleBack = () => {
     navigate('/', true)
@@ -13,17 +14,21 @@ export function StudentLogin () {
   const handleLogin = async e => {
     e.preventDefault()
     try {
-      const response = await axios.post('/login', {
-        rollNo
+      const response = await axios.post('/student/login', {
+        rollNo,
+        password
       })
-    if (!(response.data.student.hasSubmittedFeedback)) { 
-      navigate('/feedbackForm', { state: rollNo })
-      
-    }
-else{
-  navigate('/responded')
-}    } catch (e) {
-      alert('Login failed. Please check your roll number and try again.')
+      const student = response.data.student || {}
+      if (response.data.token) {
+        localStorage.setItem('studentToken', response.data.token)
+      }
+      if (!student.hasSubmittedFeedback) {
+        navigate('/feedbackForm', { state: student })
+      } else {
+        navigate('/responded')
+      }
+    } catch (e) {
+      alert('Login failed. Please check your credentials and try again.')
     }
   }
   return (
@@ -62,6 +67,24 @@ else{
                   value={rollNo}
                   onChange={e => setRollNo(e.target.value)}
                   placeholder='XXXXXXXXX50987'
+                  required
+                  className='w-full px-4 py-3.5 border-2 border-[#dbeafe] rounded-lg text-base text-[#1e3a8a] bg-[#f0f9ff] transition-all duration-300 focus:outline-none focus:border-[#93c5fd] focus:bg-white focus:shadow-[0_0_0_4px_rgba(147,197,253,0.1)] placeholder:text-[#93c5fd] disabled:bg-[#f0f9ff] disabled:cursor-not-allowed disabled:opacity-70'
+                />
+              </div>
+              <div className='mb-6'>
+                <label
+                  htmlFor='password'
+                  className='block mb-2 text-[#1e40af text-sm font-medium tracking-wide'
+                >
+                  Password
+                </label>
+                <input
+                  type='password'
+                  name='password'
+                  id='password'
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder='••••••••'
                   required
                   className='w-full px-4 py-3.5 border-2 border-[#dbeafe] rounded-lg text-base text-[#1e3a8a] bg-[#f0f9ff] transition-all duration-300 focus:outline-none focus:border-[#93c5fd] focus:bg-white focus:shadow-[0_0_0_4px_rgba(147,197,253,0.1)] placeholder:text-[#93c5fd] disabled:bg-[#f0f9ff] disabled:cursor-not-allowed disabled:opacity-70'
                 />

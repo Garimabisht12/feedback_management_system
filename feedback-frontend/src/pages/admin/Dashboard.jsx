@@ -13,8 +13,8 @@ export default function Dashboard() {
 
     const fetchTotalFeedbacks = async () => {
         try {
-            const response = await axios.get('/admin/feedbacks/count')
-            setTotalFeedbacks(response.data.totalFeedbacks || 0)
+            const response = await axios.get('/admin/feedback')
+            setTotalFeedbacks(response.data.count || 0)
             
         } catch (error) {
             console.error('Error fetching feedbacks:', error)

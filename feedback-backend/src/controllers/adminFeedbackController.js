@@ -66,7 +66,6 @@ exports.getFeedbackById = async (req, res) => {
   }
 }
 
-
 exports.getTeacherAnalytics = async (req, res) => {
 
   try {
@@ -209,8 +208,6 @@ exports.getTeacherAnalytics = async (req, res) => {
     });
   }
 }
-
-
 
 exports.getSubjectAnalytics = async (req, res) => {
 
