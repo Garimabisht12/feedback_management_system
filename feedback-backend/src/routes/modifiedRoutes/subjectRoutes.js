@@ -12,6 +12,7 @@ router.get('/', getAllSubjects);
 
 router.post('/', createSubject);
 
+
 // router.put('/:id', updateSubject);
 
 // router.delete('/:id', deleteSubject);
