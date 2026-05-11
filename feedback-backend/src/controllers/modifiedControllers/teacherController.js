@@ -22,7 +22,7 @@ exports.createTeacher = async (req, res) => {
       message: 'Added successfully',
       data: newTeacher
     })
-  } catch (e) {
+  } catch (err) {
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -53,7 +53,7 @@ exports.getTeacherById = async (req, res) => {
   const { id } = req.params;
   if (!id) return res.status(400).json({ message: 'id required' })
   try {
-    const teacher = Teacher.findById(id);
+    const teacher = await Teacher.findById(id);
     if (!teacher) return res.status(404).json({
       success: false,
       message: 'Teacher not found'
