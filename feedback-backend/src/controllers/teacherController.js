@@ -1,4 +1,6 @@
 const Teacher = require('../models/Teacher')
+const Subject = require('../models/Subject')
+const TeachingAssignment = require('../models/TeachingAssignment')
 
 exports.createTeacher = async (req, res) => {
   const { name, department } = req.body;
@@ -32,76 +34,277 @@ exports.createTeacher = async (req, res) => {
 }
 
 exports.getAllTeachers = async (req, res) => {
+
   try {
-    const teachers = await Teacher.find({}).sort({ name: 1 })
+
+    const faculty = await Teacher.aggregate([
+
+      {
+        $lookup: {
+          from: "teachingassignments",
+          localField: "_id",
+          foreignField: "teacherId",
+          as: "assignments"
+        }
+      },
+
+      {
+        $lookup: {
+          from: "subjects",
+          localField: "assignments.subjectId",
+          foreignField: "_id",
+          as: "subjects"
+        }
+      },
+
+      {
+        $addFields: {
+          subjectsTaught: "$subjects.name"
+        }
+      }
+
+    ]);
+
     return res.status(200).json({
+
       success: true,
-      count: teachers.length,
-      faculty: teachers
+
+      count: faculty.length,
+
+      faculty
+
     });
 
   } catch (error) {
+
     return res.status(500).json({
+
       success: false,
-      message: 'Interval server error',
+
+      message: 'Internal server error',
+
       error: error.message
+
     });
+
   }
+
 }
 
 exports.getTeacherById = async (req, res) => {
-  const { id } = req.params;
-  if (!id) return res.status(400).json({ message: 'id required' })
+
   try {
-    const teacher = await Teacher.findById(id);
-    if (!teacher) return res.status(404).json({
-      success: false,
-      message: 'Teacher not found'
-    });
+
+    const { id } = req.params;
+
+    if (!id) {
+
+      return res.status(400).json({
+        success: false,
+        message: "Teacher id required"
+      });
+
+    }
+
+    const faculty = await Teacher.aggregate([
+
+      {
+        $match: {
+          _id: new require("mongoose").Types.ObjectId(id)
+        }
+      },
+
+      {
+        $lookup: {
+          from: "teachingassignments",
+          localField: "_id",
+          foreignField: "teacherId",
+          as: "assignments"
+        }
+      },
+
+      {
+        $lookup: {
+          from: "subjects",
+          localField: "assignments.subjectId",
+          foreignField: "_id",
+          as: "subjects"
+        }
+      },
+
+      {
+        $addFields: {
+          subjectsTaught: "$subjects.name"
+        }
+      }
+
+    ]);
+
+    if (faculty.length === 0) {
+
+      return res.status(404).json({
+        success: false,
+        message: "Teacher not found"
+      });
+
+    }
+
     return res.status(200).json({
+
       success: true,
-      faculty: teacher
+
+      faculty: faculty[0]
+
+    });
+
+  } catch (err) {
+
+    return res.status(500).json({
+
+      success: false,
+
+      message: "Internal server error",
+
+      error: err.message
+
     });
 
   }
-  catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: err.message
-    })
-  }
+
 }
+
+
+
 
 exports.updateTeacher = async (req, res) => {
+
   try {
-    const { id } = req.params;
-    const { teacherName, department } = req.body;
 
-    const teacher = await Teacher.findById(id);
-    if (!teacher) return res.status(404).json({
-      success: false,
-      message: 'Teacher not found!'
+    const { id } = req.params
 
-    });
-    if (teacherName) teacher.name = teacherName;
-    if (department) teacher.department = department;
+    const {
+      teacherName,
+      department,
+      subjectsTaught
+    } = req.body
 
-    await teacher.save();
+    const teacher = await Teacher.findById(id)
+
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      })
+    }
+
+    // update teacher info
+    if (teacherName) teacher.name = teacherName
+    if (department) teacher.department = department
+
+    await teacher.save()
+
+    // REMOVE OLD ASSIGNMENTS
+    await TeachingAssignment.deleteMany({
+      teacherId: teacher._id
+    })
+
+    // CREATE NEW ASSIGNMENTS
+    if (subjectsTaught && subjectsTaught.length > 0) {
+
+      for (let subjectName of subjectsTaught) {
+
+        const subject = await Subject.findOne({
+          name: subjectName
+        })
+
+        if (!subject) continue
+
+        await TeachingAssignment.create({
+          teacherId: teacher._id,
+          subjectId: subject._id,
+          semester: subject.semester,
+          batch: 1,
+          branch: department,
+          course: "btech"
+        })
+
+      }
+
+    }
+
     return res.status(200).json({
       success: true,
-      message: `${teacherName} details updated.`,
-      data: teacher
+      message: 'Teacher updated successfully'
     })
+
   }
   catch (err) {
+
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
       error: err.message
     })
+
   }
+
 }
+// exports.updateTeacher = async (req, res) => {
+
+//   try {
+
+//     const { id } = req.params;
+
+//     const { teacherName, department } = req.body;
+
+//     const teacher = await Teacher.findById(id);
+
+//     if (!teacher) {
+
+//       return res.status(404).json({
+//         success: false,
+//         message: "Teacher not found"
+//       });
+
+//     }
+
+//     // update fields
+
+//     if (teacherName) {
+//       teacher.name = teacherName;
+//     }
+
+//     if (department) {
+//       teacher.department = department;
+//     }
+
+//     await teacher.save();
+
+//     return res.status(200).json({
+
+//       success: true,
+
+//       message: "Teacher updated successfully",
+
+//       data: teacher
+
+//     });
+
+//   } catch (err) {
+
+//     return res.status(500).json({
+
+//       success: false,
+
+//       message: "Internal server error",
+
+//       error: err.message
+
+//     });
+
+//   }
+
+// }
 
 exports.deleteTeacher = async (req, res) => {
   try {

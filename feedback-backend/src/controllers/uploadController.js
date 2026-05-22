@@ -1,14 +1,10 @@
+const xlsx = require("xlsx");
+const ExcelJS = require("exceljs");
+
 const Subject = require("../models/Subject");
 const Teacher = require("../models/Teacher");
 const Student = require("../models/Student");
 const TeachingAssignment = require('../models/TeachingAssignment')
-
-const xlsx = require("xlsx");
-
-
-
-
-const ExcelJS = require("exceljs");
 
 const FeedbackForm = require("../models//FeedbackForm");
 const FeedbackEntry = require("../models/FeedbackEntry");
@@ -22,6 +18,7 @@ exports.uploadStudents = async (req, res) => {
       // check file
 
       if (!req.file) {
+        console.log('error no file uploaded')
         return res.status(400).json({
           success: false,
           message: "No file uploaded",
@@ -47,6 +44,7 @@ exports.uploadStudents = async (req, res) => {
       // check empty excel
 
       if (students.length === 0) {
+        console.log('empty excel sheet')
         return res.status(400).json({
           success: false,
           message: "Excel sheet is empty",
@@ -61,9 +59,7 @@ exports.uploadStudents = async (req, res) => {
 
           name: student.name,
 
-          email: student.email,
-
-          rollno: student.rollno,
+          rollNo: student.rollNo,
 
           course: student.course,
 
@@ -103,91 +99,191 @@ exports.uploadAssignments = async (req, res) => {
 
   try {
 
+    // check file
+
     if (!req.file) {
+
       return res.status(400).json({
         success: false,
         message: "Excel file required"
       });
+
     }
 
-    // read file
-    const workbook = xlsx.readFile(req.file.path);
+    // read excel file
+
+    const workbook = xlsx.read(req.file.buffer, {
+  type: "buffer",
+});
+
     const sheetName = workbook.SheetNames[0];
-    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    const sheet = workbook.Sheets[sheetName];
+
+    const data = xlsx.utils.sheet_to_json(sheet);
+
+    // check empty sheet
+
+    if (data.length === 0) {
+
+      return res.status(400).json({
+        success: false,
+        message: "Excel sheet is empty"
+      });
+
+    }
 
     let created = 0;
+
     let skipped = 0;
+
+    let teachersCreated = 0;
+
+    let subjectsCreated = 0;
+
+    // loop rows
 
     for (let row of data) {
 
       const {
         teacherName,
         subjectCode,
+        subjectName,
         semester,
         batch,
         branch,
         course
       } = row;
 
+      // validate required fields
+
       if (
         !teacherName ||
         !subjectCode ||
+        !subjectName ||
         !semester ||
         !batch ||
         !branch ||
         !course
       ) {
+
         skipped++;
+
         continue;
       }
 
-      const teacher = await Teacher.findOne({ name: teacherName });
-      const subject = await Subject.findOne({ subjectCode });
+      // find teacher
 
-      if (!teacher || !subject) {
-        skipped++;
-        continue;
+      let teacher = await Teacher.findOne({
+        name: teacherName
+      });
+
+      // create teacher if not exists
+
+      if (!teacher) {
+
+        teacher = await Teacher.create({
+          name: teacherName,
+          department: branch
+        });
+
+        teachersCreated++;
       }
+
+      // find subject
+
+      let subject = await Subject.findOne({
+        subjectCode: String(subjectCode)
+      });
+
+      // create subject if not exists
+
+      if (!subject) {
+
+        subject = await Subject.create({
+          name: subjectName,
+          semester,
+          subjectCode: String(subjectCode)
+        });
+
+        subjectsCreated++;
+      }
+
+      // check assignment already exists
 
       const exists = await TeachingAssignment.findOne({
+
         teacherId: teacher._id,
+
         subjectId: subject._id,
+
         semester,
+
         batch,
+
         branch,
+
         course
+
       });
 
       if (exists) {
+
         skipped++;
+
         continue;
       }
 
+      // create assignment
+
       await TeachingAssignment.create({
+
         teacherId: teacher._id,
+
         subjectId: subject._id,
+
         semester,
+
         batch,
+
         branch,
+
         course
+
       });
 
       created++;
+
     }
 
     return res.status(200).json({
+
       success: true,
-      message: "Upload completed",
-      created,
+
+      message: "Upload completed successfully",
+
+      assignmentsCreated: created,
+
+      teachersCreated,
+
+      subjectsCreated,
+
       skipped
+
     });
 
-  } catch (err) {
+  } catch (error) {
+
+    console.log(error);
 
     return res.status(500).json({
+
       success: false,
+
       message: "Upload failed",
-      error: err.message
+
+      error: error.message
+
     });
 
   }
@@ -195,80 +291,227 @@ exports.uploadAssignments = async (req, res) => {
 };
 
 
-
 exports.exportAnalytics = async (req, res) => {
-
   try {
-
     const workbook = new ExcelJS.Workbook();
 
-    // =========================
-    // SHEET 1: FEEDBACK DETAILS
-    // =========================
+    // ======================================================
+    // FETCH ALL FEEDBACK ENTRIES
+    // ======================================================
+    const entries = await FeedbackEntry.find({})
+      .populate({
+        path: "feedback_form",
+        populate: { path: "studentId" }
+      });
+
+    // ======================================================
+    // SHEET 1 : COMPLETE FEEDBACK DATA
+    // ======================================================
     const feedbackSheet = workbook.addWorksheet("Feedback Details");
 
     feedbackSheet.columns = [
-      { header: "Student ID", key: "studentId", width: 25 },
-      { header: "Teacher", key: "teacher", width: 20 },
-      { header: "Subject", key: "subject", width: 20 },
-      { header: "Rating", key: "rating", width: 10 },
+      { header: "Student Roll No", key: "studentId", width: 25 },
+      { header: "Teacher", key: "teacher", width: 25 },
+      { header: "Subject", key: "subject", width: 30 },
+      { header: "Rating", key: "rating", width: 15 },
       { header: "Comments", key: "comments", width: 40 }
     ];
 
-    const entries = await FeedbackEntry.find({})
-      .populate({
-        path: "form_id",
-        populate: { path: "student_id" }
-      })
-      .populate({
-        path: "teaching_assignments_id",
-        populate: ["teacherId", "subjectId"]
-      });
+    // HEADER STYLE
+    feedbackSheet.getRow(1).font = { bold: true };
 
     entries.forEach((e) => {
-
       feedbackSheet.addRow({
-        studentId: e.form_id?.student_id?.rollNo || "",
-        teacher: e.teaching_assignments_id?.teacherId?.name || "",
-        subject: e.teaching_assignments_id?.subjectId?.name || "",
-        rating: e.overall?.rating || "",
-        comments: e.comments || ""
+        studentId: e.feedback_form?.studentId?.rollNo || "",
+        teacher: e.teacher_name || "",
+        subject: e.subject_name || "",
+        rating: e.overall_performance || 0,
+        comments: e.comment || ""
       });
-
     });
 
-    // =========================
-    // SHEET 2: TEACHER SUMMARY
-    // =========================
-    const summarySheet = workbook.addWorksheet("Teacher Summary");
+    // ======================================================
+    // CALCULATE ANALYTICS
+    // ======================================================
+    const analytics = {};
 
-    summarySheet.columns = [
+    entries.forEach((e) => {
+      const teacher = e.teacher_name || "Unknown";
+      const subject = e.subject_name || "Unknown";
+      const rating = Number(e.overall_performance || 0);
+
+      if (!analytics[teacher]) {
+        analytics[teacher] = {
+          subject,
+          total: 0,
+          count: 0,
+          highest: rating,
+          lowest: rating,
+          ratings: []
+        };
+      }
+
+      analytics[teacher].total += rating;
+      analytics[teacher].count += 1;
+      analytics[teacher].ratings.push(rating);
+
+      if (rating > analytics[teacher].highest) {
+        analytics[teacher].highest = rating;
+      }
+
+      if (rating < analytics[teacher].lowest) {
+        analytics[teacher].lowest = rating;
+      }
+    });
+
+    // ======================================================
+    // SHEET 2 : ANALYTICS SUMMARY
+    // ======================================================
+    const analyticsSheet = workbook.addWorksheet("Analytics Summary");
+
+    analyticsSheet.columns = [
       { header: "Teacher", key: "teacher", width: 25 },
-      { header: "Avg Rating", key: "avg", width: 15 },
-      { header: "Total Feedback", key: "count", width: 20 }
+      { header: "Subject", key: "subject", width: 30 },
+      { header: "Average Rating", key: "average", width: 18 },
+      { header: "Highest Rating", key: "highest", width: 18 },
+      { header: "Lowest Rating", key: "lowest", width: 18 },
+      { header: "Total Feedbacks", key: "count", width: 18 },
+      { header: "Performance", key: "performance", width: 20 }
     ];
 
-    const teacherAgg = await FeedbackEntry.aggregate([
-      {
-        $group: {
-          _id: "$teaching_assignments_id",
-          avgRating: { $avg: "$overall.rating" },
-          count: { $sum: 1 }
-        }
+    analyticsSheet.getRow(1).font = { bold: true };
+
+    Object.keys(analytics).forEach((teacher) => {
+      const data = analytics[teacher];
+
+      const avg = data.total / data.count;
+
+      let performance = "";
+
+      if (avg >= 4.5) {
+        performance = "Excellent";
+      } else if (avg >= 4.0) {
+        performance = "Very Good";
+      } else if (avg >= 3.0) {
+        performance = "Good";
+      } else if (avg >= 2.0) {
+        performance = "Average";
+      } else {
+        performance = "Poor";
       }
-    ]);
 
-    for (let t of teacherAgg) {
-      summarySheet.addRow({
-        teacher: t._id,
-        avg: t.avgRating.toFixed(2),
-        count: t.count
+      analyticsSheet.addRow({
+        teacher,
+        subject: data.subject,
+        average: avg.toFixed(2),
+        highest: data.highest,
+        lowest: data.lowest,
+        count: data.count,
+        performance
       });
-    }
+    });
 
-    // =========================
-    // RESPONSE HEADERS
-    // =========================
+    // ======================================================
+    // SHEET 3 : OVERALL SYSTEM ANALYTICS
+    // ======================================================
+    const overallSheet = workbook.addWorksheet("Overall Analytics");
+
+    overallSheet.columns = [
+      { header: "Metric", key: "metric", width: 35 },
+      { header: "Value", key: "value", width: 20 }
+    ];
+
+    overallSheet.getRow(1).font = { bold: true };
+
+    const totalFeedbacks = entries.length;
+
+    const overallAverage =
+      entries.reduce(
+        (sum, e) => sum + Number(e.overall_performance || 0),
+        0
+      ) / (totalFeedbacks || 1);
+
+    const uniqueTeachers = [
+      ...new Set(entries.map((e) => e.teacher_name))
+    ];
+
+    const uniqueSubjects = [
+      ...new Set(entries.map((e) => e.subject_name))
+    ];
+
+    overallSheet.addRow({
+      metric: "Total Feedback Entries",
+      value: totalFeedbacks
+    });
+
+    overallSheet.addRow({
+      metric: "Overall Average Rating",
+      value: overallAverage.toFixed(2)
+    });
+
+    overallSheet.addRow({
+      metric: "Total Teachers",
+      value: uniqueTeachers.length
+    });
+
+    overallSheet.addRow({
+      metric: "Total Subjects",
+      value: uniqueSubjects.length
+    });
+
+    // ======================================================
+    // BEST TEACHER
+    // ======================================================
+    let bestTeacher = "";
+    let bestRating = 0;
+
+    Object.keys(analytics).forEach((teacher) => {
+      const data = analytics[teacher];
+      const avg = data.total / data.count;
+
+      if (avg > bestRating) {
+        bestRating = avg;
+        bestTeacher = teacher;
+      }
+    });
+
+    overallSheet.addRow({
+      metric: "Best Performing Teacher",
+      value: `${bestTeacher} (${bestRating.toFixed(2)})`
+    });
+
+    // ======================================================
+    // STYLING
+    // ======================================================
+    workbook.eachSheet((sheet) => {
+      sheet.eachRow((row, rowNumber) => {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" }
+          };
+
+          if (rowNumber === 1) {
+            cell.font = {
+              bold: true,
+              color: { argb: "FFFFFF" }
+            };
+
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "4472C4" }
+            };
+          }
+        });
+      });
+    });
+
+    // ======================================================
+    // RESPONSE
+    // ======================================================
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -276,20 +519,20 @@ exports.exportAnalytics = async (req, res) => {
 
     res.setHeader(
       "Content-Disposition",
-      "attachment; filename=analytics.xlsx"
+      "attachment; filename=feedback_analytics.xlsx"
     );
 
     await workbook.xlsx.write(res);
+
     res.end();
 
   } catch (err) {
+    console.log(err);
 
     return res.status(500).json({
       success: false,
       message: "Export failed",
       error: err.message
     });
-
   }
-
 };

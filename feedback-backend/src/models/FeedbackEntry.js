@@ -25,18 +25,20 @@ const FeedbackEntrySchema = new mongoose.Schema({
 
   syllabus_covered: {
     type: Number,
+    min: 1,
+    max: 10,
   },
 
   voice_communication: {
     type: Number,
     min: 1,
-    max: 5,
+    max: 10,
   },
 
   regularity_punctuality: {
     type: Number,
     min: 1,
-    max: 5,
+    max: 10,
   },
 
   ranking: {

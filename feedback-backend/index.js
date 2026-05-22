@@ -12,7 +12,7 @@ const teacherRoutes = require('./src/routes/teacherRoutes')
 const subjectRoutes = require('./src/routes/subjectRoutes')
 const assignmentRoutes = require('./src/routes/assignmentRoutes')
 const studentRoutes = require('./src/routes/studentRoutes')
-
+const uploadRoutes = require('./src/routes/uploadRoutes')
 
 const feedbackRoutes = require('./src/routes/feedbackRoutes');
 
@@ -35,6 +35,7 @@ app.use('/api/admin/teacher', teacherRoutes)
 app.use('/api/admin/subject', subjectRoutes)
 app.use('/api/admin/feedback', feedbackRoutes)
 app.use('/api/admin/assignment', assignmentRoutes)
+app.use('/api/admin', uploadRoutes)
 app.use('/api/student', studentRoutes)
 
 

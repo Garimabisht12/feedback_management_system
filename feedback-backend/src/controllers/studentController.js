@@ -3,6 +3,7 @@ const { getAssignmentsByAcademicData } = require('../services/assignmentService'
 
 exports.fetchSubjects = async (req, res) => {
   const student = req.student;
+  
   if (!student) return res.status(400).json({
     success: false,
     message: "student data required!"
@@ -16,6 +17,7 @@ exports.fetchSubjects = async (req, res) => {
       course: student.course,
       branch: student.branch
     })
+    
 
     if (subjects.length === 0) {
       return res.status(404).json({

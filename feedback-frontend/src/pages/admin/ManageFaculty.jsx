@@ -17,8 +17,15 @@ const ManageFaculty = () => {
   const [selectedSubjects, setSelectedSubjects] = useState([])
   const navigate = useNavigate()
 
-  const uniqueSubjectNames = Array.from(new Set(subjects.map(subject => subject.subjectName || subject)))
+const uniqueSubjectNames = [
 
+  ...new Set(
+
+    subjects.map(subject => subject.name)
+
+  )
+
+]
   useEffect(() => {
     fetchData()
   }, [])
@@ -103,11 +110,17 @@ const ManageFaculty = () => {
   const handleEditClick = (faculty) => {
     setEditingFaculty(faculty)
     setFormData({
-      teacherName: faculty.teacherName,
-      department: faculty.department,
-      subjectsTaught: faculty.subjectsTaught || []
-    })
-    setSelectedSubjects(Array.from(new Set(faculty.subjectsTaught || [])))
+  teacherName: faculty.name,
+  department: faculty.department,
+  subjectsTaught: faculty.subjectsTaught || []
+})
+setSelectedSubjects(
+
+  faculty.subjectsTaught
+    ? faculty.subjectsTaught.map(subject => subject.name)
+    : []
+
+)
     setShowEditForm(true)
     setShowAddForm(false)
   }
@@ -373,49 +386,90 @@ const ManageFaculty = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {faculties.map((faculty, index) => (
-                    <tr
-                      key={faculty._id}
-                      className="hover:bg-blue-50 transition-colors duration-200"
-                    >
-                      <td className="px-6 py-4 text-gray-900 font-medium">{index + 1}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">{faculty.teacherName}</td>
-                      <td className="px-6 py-4 text-gray-700">{faculty.department}</td>
-                      <td className="px-6 py-4 text-gray-700">
-                        <div className="flex flex-wrap gap-1">
-                          {faculty.subjectsTaught?.length > 0 ? (
-                            Array.from(new Set(faculty.subjectsTaught)).map((subject, idx) => (
-                              <span
-                                key={idx}
-                                className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
-                              >
-                                {subject}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-400 text-sm">No subjects</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleEditClick(faculty)}
-                            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteFaculty(faculty._id, faculty.teacherName)}
-                            className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-medium transition-all duration-300 hover:from-red-600 hover:to-red-700 hover:shadow-lg"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+  {faculties.map((faculty, index) => (
+
+    <tr
+      key={faculty._id}
+      className="hover:bg-blue-50 transition-colors duration-200"
+    >
+
+      <td className="px-6 py-4 text-gray-900 font-medium">
+        {index + 1}
+      </td>
+
+      {/* FIXED NAME */}
+      <td className="px-6 py-4 text-gray-900 font-medium">
+        {faculty.name}
+      </td>
+
+      <td className="px-6 py-4 text-gray-700">
+        {faculty.department}
+      </td>
+
+      {/* SUBJECTS */}
+      <td className="px-6 py-4 text-gray-700">
+
+        <div className="flex flex-wrap gap-1">
+
+          {faculty.subjectsTaught &&
+          faculty.subjectsTaught.length > 0 ? (
+
+            Array.from(new Set(faculty.subjectsTaught)).map(
+              (subject, idx) => (
+
+                <span
+                  key={idx}
+                  className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
+                >
+                  {subject}
+                </span>
+
+              )
+            )
+
+          ) : (
+
+            <span className="text-gray-400 text-sm">
+              No subjects
+            </span>
+
+          )}
+
+        </div>
+
+      </td>
+
+      <td className="px-6 py-4 text-center">
+
+        <div className="flex items-center justify-center gap-2">
+
+          <button
+            onClick={() => handleEditClick(faculty)}
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
+          >
+            Edit
+          </button>
+
+          <button
+            onClick={() =>
+              handleDeleteFaculty(
+                faculty._id,
+                faculty.name
+              )
+            }
+            className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-medium transition-all duration-300 hover:from-red-600 hover:to-red-700 hover:shadow-lg"
+          >
+            Delete
+          </button>
+
+        </div>
+
+      </td>
+
+    </tr>
+
+  ))}
+</tbody>
               </table>
             </div>
           )}

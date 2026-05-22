@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../api/axios';
-import * as XLSX from 'xlsx';
+
 
 const UploadSubjects = () => {
   const [file, setFile] = useState(null);
@@ -19,38 +19,83 @@ const UploadSubjects = () => {
     setMessage('');
   };
 
-  const handleUpload = async () => {
-    if (!file) {
-      setMessage('Please select an Excel file to upload.');
-      setMessageType('error');
-      return;
-    }
+const handleUpload = async () => {
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        setIsLoading(true);
-        const data = new Uint8Array(event.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+  if (!file) {
 
-        const response = await axios.post('/admin/uploadSubjects', jsonData);
-        setMessage(`✓ ${response.data.message} (${response.data.subjectsAdded} subjects added, ${response.data.facultyUpdated} faculty updated)`);
-        setMessageType('success');
-        setFile(null);
-        document.getElementById('fileInput').value = '';
-      } catch (error) {
-        console.error('Error uploading data:', error);
-        setMessage(`✗ Error: ${error.response?.data?.message || error.message || 'Unknown error occurred'}`);
-        setMessageType('error');
-      } finally {
-        setIsLoading(false);
+    setMessage('Please select an Excel file to upload.');
+
+    setMessageType('error');
+
+    return;
+  }
+
+  try {
+
+    setIsLoading(true);
+
+    // create form data
+
+    const formData = new FormData();
+
+    formData.append('file', file);
+
+    // send file
+
+    const response = await axios.post(
+
+      '/admin/uploadSubjects',
+
+      formData,
+
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       }
-    };
-    reader.readAsArrayBuffer(file);
-  };
+
+    );
+
+    setMessage(
+
+      `✓ ${response.data.message}
+      
+Assignments Created: ${response.data.assignmentsCreated}
+Teachers Created: ${response.data.teachersCreated}
+Subjects Created: ${response.data.subjectsCreated}
+Skipped: ${response.data.skipped}`
+
+    );
+
+    setMessageType('success');
+
+    setFile(null);
+
+    document.getElementById('fileInput').value = '';
+
+  } catch (error) {
+
+    console.error('Error uploading data:', error);
+
+    setMessage(
+
+      `✗ Error: ${
+        error.response?.data?.message ||
+        error.message ||
+        'Unknown error occurred'
+      }`
+
+    );
+
+    setMessageType('error');
+
+  } finally {
+
+    setIsLoading(false);
+
+  }
+
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 sm:p-10">
@@ -158,9 +203,10 @@ const UploadSubjects = () => {
               Required Fields
             </h3>
             <ul className="text-sm text-gray-700 space-y-1">
-              <li>• <strong>Session</strong> - Academic session (e.g., 2024-2025)</li>
+              <li>• <strong>Branch</strong> - Branch number (e.g., CSE, ECE etc)</li>
+              <li>• <strong>Course</strong> - Course (e.g., B.tech, BCA, MCA)</li>
+              <li>• <strong>Batch</strong> - Batch number (e.g., 1, 2, 3)</li>
               <li>• <strong>Semester</strong> - Semester number (e.g., 1, 2, 3)</li>
-              <li>• <strong>Batch</strong> - Batch year (e.g., 2024)</li>
               <li>• <strong>Subject Code</strong> - Unique subject identifier</li>
               <li>• <strong>Subject Name</strong> - Full name of the subject</li>
               <li>• <strong>Teacher Name</strong> - Name of the faculty member</li>

@@ -4,9 +4,6 @@ import axios from '../../api/axios'
 import { feedbackParameters } from '../../utilities/feedback-parameters'
 
 
-
-
-
 const calculateAverageRating = (parameterAverages) => {
   if (!parameterAverages || parameterAverages.length === 0) return 0;
   const sum = parameterAverages.reduce((acc, val) => {
@@ -18,21 +15,23 @@ const calculateAverageRating = (parameterAverages) => {
 
 const ViewFeedback = () => {
 
-    const [teachersAnalytics, setTeachersAnalytics] = useState([])
+  const [teachersAnalytics, setTeachersAnalytics] = useState([])
   const [globalAnalytics, setGlobalAnalytics] = useState(null)
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState('rating')
   const [selectedTeacher, setSelectedTeacher] = useState(null)
+  const [downloadLoading, setDownloadLoading] = useState(false)
   const navigate = useNavigate()
-   useEffect(() => {
+  useEffect(() => {
     fetchAllAnalytics()
   }, [])
-  
-   const fetchAllAnalytics = async () => {
+
+  const fetchAllAnalytics = async () => {
     try {
       setLoading(true)
-      // Fetch global analytics
+      // Fetch global analytics and all feedback forms
       const globalRes = await axios.get('/admin/feedback')
+      const feedbackForms = globalRes.data.feedbacks || []
       setGlobalAnalytics({
         totalFeedbacks: globalRes.data.count || 0
       })
@@ -41,25 +40,128 @@ const ViewFeedback = () => {
       // Fetch teacher list
       const teachersRes = await axios.get('/admin/teacher')
       const teachers = teachersRes.data.faculty || []
-      const teacherAnalytics = teachers.map(teacher => ({
+
+      // Build teacher analytics from feedback entries
+      const teacherStats = teachers.map(teacher => ({
         teacherName: teacher.name,
         department: teacher.department,
-        averageRating: 0,
         totalFeedbacks: 0,
         bestTeacherVotes: 0,
-        subjectBreakdown: []
+        avgSyllabus: 0,
+        avgVoice: 0,
+        avgRegularity: 0,
+        totalOverallTeacherRating: 0,
+        parameterTotals: Array(feedbackParameters.length).fill(0),
+        subjectMap: {},
+        comments: [],
       }))
+
+      const teacherMap = new Map(teacherStats.map(teacher => [teacher.teacherName, teacher]))
+
+      feedbackForms.forEach(form => {
+        const bestTeachers = Array.isArray(form.best_teachers) ? form.best_teachers : []
+
+        form.feedback_entries.forEach(entry => {
+          const teacherName = entry.teacher_name
+          const stats = teacherMap.get(teacherName)
+          if (!stats) return
+
+          stats.totalFeedbacks += 1
+          if (bestTeachers.includes(teacherName)) {
+            stats.bestTeacherVotes += 1
+          }
+
+          stats.avgSyllabus += Number(entry.syllabus_covered || 0)
+          stats.avgVoice += Number(entry.voice_communication || 0)
+          stats.avgRegularity += Number(entry.regularity_punctuality || 0)
+          stats.totalOverallTeacherRating += Number(entry.parameter_ratings?.overall_teacher_rating || 0)
+
+          const paramOrder = [
+            'voice_skill',
+            'systematic_delivery',
+            'behaviour',
+            'interest_in_class',
+            'command_over_subject',
+            'discussion_examples',
+            'punctuality',
+            'class_control',
+            'accessibility'
+          ]
+
+          paramOrder.forEach((key, idx) => {
+            stats.parameterTotals[idx] += Number(entry.parameter_ratings?.[key] || 0)
+          })
+
+          const subjectCode = entry.subject_code || entry.subject_name || 'Unknown'
+          const subjectKey = `${subjectCode}`
+          if (!stats.subjectMap[subjectKey]) {
+            stats.subjectMap[subjectKey] = {
+              subjectName: entry.subject_name || subjectCode,
+              subjectCode,
+              totalRating: 0,
+              feedbackCount: 0,
+            }
+          }
+          stats.subjectMap[subjectKey].totalRating += Number(entry.overall_performance || 0)
+          stats.subjectMap[subjectKey].feedbackCount += 1
+
+          if (entry.comment) {
+            stats.comments.push(entry.comment)
+          }
+        })
+      })
+
+      const teacherAnalytics = teacherStats.map(stats => {
+        const averageRating = stats.totalFeedbacks > 0
+          ? (stats.totalOverallTeacherRating / stats.totalFeedbacks).toFixed(2)
+          : 0
+        const avgSyllabus = stats.totalFeedbacks > 0
+          ? (stats.avgSyllabus / stats.totalFeedbacks).toFixed(2)
+          : 0
+        const avgVoice = stats.totalFeedbacks > 0
+          ? (stats.avgVoice / stats.totalFeedbacks).toFixed(2)
+          : 0
+        const avgRegularity = stats.totalFeedbacks > 0
+          ? (stats.avgRegularity / stats.totalFeedbacks).toFixed(2)
+          : 0
+
+        const parameterAverages = stats.parameterTotals.map(total =>
+          stats.totalFeedbacks > 0 ? Number((total / stats.totalFeedbacks).toFixed(2)) : 0
+        )
+
+        const subjectBreakdown = Object.values(stats.subjectMap).map(subject => ({
+          subjectName: subject.subjectName,
+          subjectCode: subject.subjectCode,
+          avgRating: subject.feedbackCount > 0 ? Number((subject.totalRating / subject.feedbackCount).toFixed(2)) : 0,
+          feedbackCount: subject.feedbackCount,
+        }))
+
+        return {
+          teacherName: stats.teacherName,
+          department: stats.department,
+          averageRating: Number(averageRating),
+          totalFeedbacks: stats.totalFeedbacks,
+          bestTeacherVotes: stats.bestTeacherVotes,
+          avgSyllabus: Number(avgSyllabus),
+          avgVoice: Number(avgVoice),
+          avgRegularity: Number(avgRegularity),
+          parameterAverages,
+          subjectBreakdown,
+          commentsPreview: stats.comments.slice(0, 3),
+        }
+      })
+
       console.log('Teachers Analytics:', teacherAnalytics)
       setTeachersAnalytics(teacherAnalytics)
     } catch (error) {
       console.error('Error fetching analytics:', error)
-    } finally{
-        setLoading(false)
+    } finally {
+      setLoading(false)
     }
   }
 
 
-   const handleBack = () => {
+  const handleBack = () => {
     navigate('/admin/dashboard')
   }
 
@@ -67,13 +169,13 @@ const ViewFeedback = () => {
     setSelectedTeacher(teacher)
   }
 
-   const handleCloseDetail = () => {
+  const handleCloseDetail = () => {
     setSelectedTeacher(null)
   }
 
-//   const handleViewDetails = (teacher) => {
-//     navigate('/teacher', { state: { teacher: teacher } })
-//   }
+  //   const handleViewDetails = (teacher) => {
+  //     navigate('/teacher', { state: { teacher: teacher } })
+  //   }
 
   const getSortedTeachers = () => {
     let sorted = [...teachersAnalytics]
@@ -97,13 +199,13 @@ const ViewFeedback = () => {
     if (!comments || comments.length === 0) return 'No comments'
     return comments[0].substring(0, 60) + (comments[0].length > 60 ? '...' : '')
   }
-  
-  
 
 
 
 
-  
+
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-5xl mx-auto">
@@ -115,12 +217,45 @@ const ViewFeedback = () => {
               <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Faculty Analytics</h1>
               <p className="text-gray-600 mt-1">Click on a faculty to view detailed analytics</p>
             </div>
-            <button
-              onClick={handleBack}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg"
-            >
-              Back to Dashboard
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleBack}
+                className="px-4 py-2 bg-white text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-200 border"
+              >
+                Back to Dashboard
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    setDownloadLoading(true)
+                    const res = await axios.get('admin/export', { responseType: 'blob' })
+                    const blob = new Blob([res.data], { type: res.headers['content-type'] || 'application/octet-stream' })
+                    // try to get filename from header
+                    const disposition = res.headers['content-disposition'] || ''
+                    let fileName = 'analytics.xlsx'
+                    const fileNameMatch = disposition.match(/filename="?([^";]+)"?/)
+                    if (fileNameMatch && fileNameMatch[1]) fileName = fileNameMatch[1]
+                    const url = window.URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = fileName
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                    window.URL.revokeObjectURL(url)
+                  } catch (err) {
+                    console.error('Export failed', err)
+                    alert('Export failed. Check console for details.')
+                  } finally {
+                    setDownloadLoading(false)
+                  }
+                }}
+                disabled={downloadLoading}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${downloadLoading ? 'bg-gray-300 text-gray-600' : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'}`}
+              >
+                {downloadLoading ? 'Preparing...' : 'Export Excel'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -146,7 +281,16 @@ const ViewFeedback = () => {
                   <h3 className="text-lg font-semibold mb-2 opacity-90">Avg Overall Rating</h3>
                   <p className="text-5xl font-bold">
                     {teachersAnalytics.length > 0
-                      ? ((teachersAnalytics.reduce((sum, t) => sum + t.averageRating, 0) / teachersAnalytics.length).toFixed(2))
+                      ? (
+                        teachersAnalytics.reduce(
+                          (sum, t) => sum + (t.averageRating * t.totalFeedbacks),
+                          0
+                        ) /
+                        teachersAnalytics.reduce(
+                          (sum, t) => sum + t.totalFeedbacks,
+                          0
+                        )
+                      ).toFixed(2)
                       : 0}
                     <span className="text-2xl">/5</span>
                   </p>
@@ -158,41 +302,37 @@ const ViewFeedback = () => {
             <div className="mb-6 flex gap-2 flex-wrap">
               <button
                 onClick={() => setSortBy('rating')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  sortBy === 'rating'
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${sortBy === 'rating'
                     ? 'bg-blue-500 text-white shadow-lg'
                     : 'bg-white text-gray-700 border-2 border-blue-200 hover:border-blue-400'
-                }`}
+                  }`}
               >
                 By Rating
               </button>
               <button
                 onClick={() => setSortBy('name')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  sortBy === 'name'
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${sortBy === 'name'
                     ? 'bg-blue-500 text-white shadow-lg'
                     : 'bg-white text-gray-700 border-2 border-blue-200 hover:border-blue-400'
-                }`}
+                  }`}
               >
                 By Name
               </button>
               <button
                 onClick={() => setSortBy('feedbacks')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  sortBy === 'feedbacks'
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${sortBy === 'feedbacks'
                     ? 'bg-blue-500 text-white shadow-lg'
                     : 'bg-white text-gray-700 border-2 border-blue-200 hover:border-blue-400'
-                }`}
+                  }`}
               >
                 By Feedbacks
               </button>
               <button
                 onClick={() => setSortBy('votes')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  sortBy === 'votes'
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${sortBy === 'votes'
                     ? 'bg-blue-500 text-white shadow-lg'
                     : 'bg-white text-gray-700 border-2 border-blue-200 hover:border-blue-400'
-                }`}
+                  }`}
               >
                 By Best Teacher Votes
               </button>

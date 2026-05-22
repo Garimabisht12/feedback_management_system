@@ -19,38 +19,58 @@ const UploadStudents = () => {
     setMessage('');
   };
 
-  const handleUpload = async () => {
-    if (!file) {
-      setMessage('Please select an Excel file to upload.');
-      setMessageType('error');
-      return;
-    }
+ const handleUpload = async () => {
+  if (!file) {
+    setMessage('Please select an Excel file to upload.');
+    setMessageType('error');
+    return;
+  }
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        setIsLoading(true);
-        const data = new Uint8Array(event.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+  try {
+    setIsLoading(true);
 
-        const response = await axios.post('/admin/uploadStudents', jsonData);
-        setMessage(`✓ ${response.data.message} (${response.data.studentsAdded} students added)`);
-        setMessageType('success');
-        setFile(null);
-        document.getElementById('fileInput').value = '';
-      } catch (error) {
-        console.error('Error uploading data:', error);
-        setMessage(`✗ Error: ${error.response?.data?.message || error.message || 'Unknown error occurred'}`);
-        setMessageType('error');
-      } finally {
-        setIsLoading(false);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await axios.post(
+      '/admin/uploadStudents',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       }
-    };
-    reader.readAsArrayBuffer(file);
-  };
+    );
+
+    setMessage(
+      `✓ ${response.data.message} (${response.data.total_students} students added)`
+    );
+
+    setMessageType('success');
+
+    setFile(null);
+
+    document.getElementById('fileInput').value = '';
+
+  } catch (error) {
+
+    console.error('Error uploading data:', error);
+
+    setMessage(
+      `✗ Error: ${
+        error.response?.data?.message ||
+        error.message ||
+        'Unknown error occurred'
+      }`
+    );
+
+    setMessageType('error');
+
+  } finally {
+
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 sm:p-10">
@@ -162,6 +182,10 @@ const UploadStudents = () => {
               <li>• <strong>Student Name</strong> - Full name of the student</li>
               <li>• <strong>Course</strong> - Course name (e.g., B.Tech)</li>
               <li>• <strong>Branch</strong> - Branch name (e.g., CSE, ECE)</li>
+              <li>• <strong>Semester</strong> - Semsester (e.g., 1, 2, ...)</li>
+              <li>• <strong>Batch</strong> - Batch name (e.g., 1, 2, ...)</li>
+              <li>• <strong>Password</strong> - DOB (e.g., XX-YY-ZZZZ)</li>
+             
             </ul>
           </div>
         </div>

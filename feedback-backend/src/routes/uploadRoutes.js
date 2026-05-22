@@ -4,31 +4,21 @@ const multer = require("multer");
 
 const router = express.Router();
 
-
-
 const {
   uploadStudents,
   uploadAssignments,
   exportAnalytics
 } = require("../controllers/uploadController");
 
-
 // multer config
-
 const storage = multer.memoryStorage();
-
 const upload = multer({
   storage,
 });
 
+router.post('/uploadStudents', authMiddleWare, upload.single("file"), uploadStudents)
 
-
-
-router.post('/students', authMiddleWare, upload.single("file"), uploadStudents)
-
-
-router.post("/assignments", authMiddleWare, upload.single("file"), uploadAssignments
-);
+router.post("/uploadSubjects", authMiddleWare, upload.single("file"), uploadAssignments)
 
 router.get("/export", exportAnalytics);
 
