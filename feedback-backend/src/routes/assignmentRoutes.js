@@ -3,8 +3,6 @@ const authMiddleware = require('../middleware/authMiddleware');
 const { createAssignment, getAllAssignments, getAssignedSubjectByTeacherId, deleteAssignment, updateAssignment } = require('../controllers/teacherAssignmentController');
 
 
-
-
 const router = express.Router();
 
 

@@ -66,33 +66,33 @@ const uniqueSubjectNames = [
     })
   }
 
-  const handleAddFaculty = async (e) => {
-    e.preventDefault()
-    try {
-      const facultyData = {
-        ...formData,
-        subjectsTaught: selectedSubjects
-      }
+  // const handleAddFaculty = async (e) => {
+  //   e.preventDefault()
+  //   try {
+  //     const facultyData = {
+  //       ...formData,
+  //       subjectsTaught: selectedSubjects
+  //     }
 
-      await axios.post('/admin/teacher', facultyData)
+  //     await axios.post('/admin/teacher', facultyData)
 
-      // Reset form
-      setFormData({
-        teacherName: '',
-        department: '',
-        subjectsTaught: []
-      })
-      setSelectedSubjects([])
-      setShowAddForm(false)
+  //     // Reset form
+  //     setFormData({
+  //       teacherName: '',
+  //       department: '',
+  //       subjectsTaught: []
+  //     })
+  //     setSelectedSubjects([])
+  //     setShowAddForm(false)
 
-      // Refresh faculty list
-      fetchData()
-      alert('Faculty added successfully!')
-    } catch (error) {
-      console.error('Error adding faculty:', error)
-      alert(error.response?.data?.message || 'Failed to add faculty')
-    }
-  }
+  //     // Refresh faculty list
+  //     fetchData()
+  //     alert('Faculty added successfully!')
+  //   } catch (error) {
+  //     console.error('Error adding faculty:', error)
+  //     alert(error.response?.data?.message || 'Failed to add faculty')
+  //   }
+  // }
 
   const handleDeleteFaculty = async (facultyId, teacherName) => {
     if (window.confirm(`Are you sure you want to delete ${teacherName}?`)) {
@@ -107,63 +107,63 @@ const uniqueSubjectNames = [
     }
   }
 
-  const handleEditClick = (faculty) => {
-    setEditingFaculty(faculty)
-    setFormData({
-  teacherName: faculty.name,
-  department: faculty.department,
-  subjectsTaught: faculty.subjectsTaught || []
-})
-setSelectedSubjects(
+//   const handleEditClick = (faculty) => {
+//     setEditingFaculty(faculty)
+//     setFormData({
+//   teacherName: faculty.name,
+//   department: faculty.department,
+//   subjectsTaught: faculty.subjectsTaught || []
+// })
+// setSelectedSubjects(
 
-  faculty.subjectsTaught
-    ? faculty.subjectsTaught.map(subject => subject.name)
-    : []
+//   faculty.subjectsTaught
+//     ? faculty.subjectsTaught.map(subject => subject.name)
+//     : []
 
-)
-    setShowEditForm(true)
-    setShowAddForm(false)
-  }
+// )
+//     setShowEditForm(true)
+//     setShowAddForm(false)
+//   }
 
-  const handleUpdateFaculty = async (e) => {
-    e.preventDefault()
-    try {
-      const facultyData = {
-        ...formData,
-        subjectsTaught: selectedSubjects
-      }
+  // const handleUpdateFaculty = async (e) => {
+  //   e.preventDefault()
+  //   try {
+  //     const facultyData = {
+  //       ...formData,
+  //       subjectsTaught: selectedSubjects
+  //     }
 
-      await axios.put(`/admin/teacher/${editingFaculty._id}`, facultyData)
+  //     await axios.put(`/admin/teacher/${editingFaculty._id}`, facultyData)
 
-      // Reset form
-      setFormData({
-        teacherName: '',
-        department: '',
-        subjectsTaught: []
-      })
-      setSelectedSubjects([])
-      setShowEditForm(false)
-      setEditingFaculty(null)
+  //     // Reset form
+  //     setFormData({
+  //       teacherName: '',
+  //       department: '',
+  //       subjectsTaught: []
+  //     })
+  //     setSelectedSubjects([])
+  //     setShowEditForm(false)
+  //     setEditingFaculty(null)
 
-      // Refresh faculty list
-      fetchData()
-      alert('Faculty updated successfully!')
-    } catch (error) {
-      console.error('Error updating faculty:', error)
-      alert(error.response?.data?.message || 'Failed to update faculty')
-    }
-  }
+  //     // Refresh faculty list
+  //     fetchData()
+  //     alert('Faculty updated successfully!')
+  //   } catch (error) {
+  //     console.error('Error updating faculty:', error)
+  //     alert(error.response?.data?.message || 'Failed to update faculty')
+  //   }
+  // }
 
-  const handleCancelEdit = () => {
-    setShowEditForm(false)
-    setEditingFaculty(null)
-    setFormData({
-      teacherName: '',
-      department: '',
-      subjectsTaught: []
-    })
-    setSelectedSubjects([])
-  }
+  // const handleCancelEdit = () => {
+  //   setShowEditForm(false)
+  //   setEditingFaculty(null)
+  //   setFormData({
+  //     teacherName: '',
+  //     department: '',
+  //     subjectsTaught: []
+  //   })
+  //   setSelectedSubjects([])
+  // }
 
   const handleBack = () => {
     navigate('/admin/dashboard')
@@ -178,7 +178,7 @@ setSelectedSubjects(
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Manage Faculty</h1>
             <div className="flex gap-3">
-              <button
+              {/* <button
                 onClick={() => {
                   setShowAddForm(!showAddForm)
                   setShowEditForm(false)
@@ -189,7 +189,7 @@ setSelectedSubjects(
                 className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
               >
                 {showAddForm ? 'Cancel' : 'Add Faculty'}
-              </button>
+              </button> */}
               <button
                 onClick={handleBack}
                 className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-medium transition-all duration-300 hover:bg-gray-50"
@@ -274,7 +274,7 @@ setSelectedSubjects(
         )}
 
         {/* Edit Faculty Form */}
-        {showEditForm && editingFaculty && (
+        {/* {showEditForm && editingFaculty && (
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">Edit Faculty</h2>
             <form onSubmit={handleUpdateFaculty}>
@@ -352,7 +352,7 @@ setSelectedSubjects(
               </div>
             </form>
           </div>
-        )}
+        )} */}
 
         {/* Faculty List */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -443,12 +443,12 @@ setSelectedSubjects(
 
         <div className="flex items-center justify-center gap-2">
 
-          <button
+          {/* <button
             onClick={() => handleEditClick(faculty)}
             className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
           >
             Edit
-          </button>
+          </button> */}
 
           <button
             onClick={() =>

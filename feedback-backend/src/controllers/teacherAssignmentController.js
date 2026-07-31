@@ -6,8 +6,6 @@ const { getAssignmentsByAcademicData } = require("../services/assignmentService"
 exports.createAssignment = async (req, res) => {
   const { semester, batch, subjectId, teacherId, course, branch } = req.body;
 
- 
-
   if (!semester || !batch || !subjectId || !teacherId || !course || !branch) return res.status(400).json({ success: false, message: 'All fields required.' });
 
   try {
