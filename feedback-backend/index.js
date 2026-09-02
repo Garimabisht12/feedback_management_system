@@ -60,4 +60,5 @@ mongoose.connect(process.env.MONGO_URI)
         console.log(`error connecting db: ${err}`)
     })
 }
-export default app;
+
+module.exports = app;

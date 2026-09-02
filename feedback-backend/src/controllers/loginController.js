@@ -150,18 +150,18 @@ exports.loginStudent = async (req, res) => {
       });
     }
 
-    // const isMatch =
-    //   await bcrypt.compare(
-    //     password,
-    //     student.password
-    //   );
+    const isMatch =
+      await bcrypt.compare(
+        password,
+        student.password
+      );
 
-    // if (!isMatch) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Invalid credentials"
-    //   });
-    // }
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid credentials"
+      });
+    }
 
     const token = jwt.sign(
       {
