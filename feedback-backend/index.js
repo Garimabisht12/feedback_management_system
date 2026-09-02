@@ -19,7 +19,7 @@ const feedbackRoutes = require('./src/routes/feedbackRoutes');
 const app = express()
 
 app.use(cors({
-    origin: [process.env.CLIENT_URL ||'http://localhost:5173'],
+    origin: [process.env.CLIENT_URL, 'http://localhost:5173'],
     credentials: true
 }))
 
