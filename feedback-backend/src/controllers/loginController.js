@@ -38,7 +38,8 @@ exports.loginAdmin = async(req, res) => {
   }
   catch(e){
     res.status(500).json({
-      message: "Internal Server Error!"
+      message: "Internal Server Error!",
+      error: e.message
     })
   }
 }
